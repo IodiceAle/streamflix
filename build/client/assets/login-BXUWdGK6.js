@@ -1,0 +1,1 @@
+import{w as t,p as e}from"./chunk-4WY6JWTD-DY61A93B.js";const o=t(function(){return e.jsx("div",{className:"flex items-center justify-center h-screen bg-black text-white",children:e.jsx("h1",{className:"text-2xl font-bold",children:"Login Page"})})});export{o as default};

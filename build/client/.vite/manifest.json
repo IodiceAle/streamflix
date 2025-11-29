@@ -1,0 +1,45 @@
+{
+  "_chunk-4WY6JWTD-DY61A93B.js": {
+    "file": "assets/chunk-4WY6JWTD-DY61A93B.js",
+    "name": "chunk-4WY6JWTD"
+  },
+  "app/root.tsx?__react-router-build-client-route": {
+    "file": "assets/root-C3HSl_Kj.js",
+    "name": "root",
+    "src": "app/root.tsx?__react-router-build-client-route",
+    "isEntry": true,
+    "imports": [
+      "_chunk-4WY6JWTD-DY61A93B.js"
+    ],
+    "css": [
+      "assets/root-BjGkgyrj.css"
+    ]
+  },
+  "app/routes/_index.tsx?__react-router-build-client-route": {
+    "file": "assets/_index-BorKqI-C.js",
+    "name": "_index",
+    "src": "app/routes/_index.tsx?__react-router-build-client-route",
+    "isEntry": true,
+    "imports": [
+      "_chunk-4WY6JWTD-DY61A93B.js"
+    ]
+  },
+  "app/routes/login.tsx?__react-router-build-client-route": {
+    "file": "assets/login-BXUWdGK6.js",
+    "name": "login",
+    "src": "app/routes/login.tsx?__react-router-build-client-route",
+    "isEntry": true,
+    "imports": [
+      "_chunk-4WY6JWTD-DY61A93B.js"
+    ]
+  },
+  "node_modules/@react-router/dev/dist/config/defaults/entry.client.tsx": {
+    "file": "assets/entry.client-B1IleC5L.js",
+    "name": "entry.client",
+    "src": "node_modules/@react-router/dev/dist/config/defaults/entry.client.tsx",
+    "isEntry": true,
+    "imports": [
+      "_chunk-4WY6JWTD-DY61A93B.js"
+    ]
+  }
+}
