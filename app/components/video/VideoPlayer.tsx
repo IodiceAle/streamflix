@@ -34,6 +34,8 @@ export function VideoPlayer({
         const video = videoRef.current
         if (!video) return
 
+        if (!video || !src) return
+
         if (src.includes('.m3u8')) {
             if (Hls.isSupported()) {
                 const hls = new Hls()
