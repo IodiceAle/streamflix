@@ -9,5 +9,4 @@ export default [
     route('settings', 'routes/settings.tsx'),
     route('detail/:type/:id', 'routes/detail.$type.$id.tsx'),
     route('watch/:type/:id', 'routes/watch.$type.$id.tsx'),
-    route('watch/tv/:id/:season/:episode', 'routes/watch.$type.$id.tsx'),
 ] satisfies RouteConfig

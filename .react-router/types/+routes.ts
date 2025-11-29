@@ -17,16 +17,16 @@ type Pages = {
   "/login": {
     params: {};
   };
-  "/settings": {
-    params: {};
-  };
   "/search": {
     params: {};
   };
-  "/mylist": {
+  "/discover": {
     params: {};
   };
-  "/discover": {
+  "/my-list": {
+    params: {};
+  };
+  "/settings": {
     params: {};
   };
   "/detail/:type/:id": {
@@ -46,31 +46,31 @@ type Pages = {
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/login" | "/settings" | "/search" | "/mylist" | "/discover" | "/detail/:type/:id" | "/watch/:type/:id";
-  };
-  "routes/_index.tsx": {
-    id: "routes/_index";
-    page: "/";
+    page: "/" | "/login" | "/search" | "/discover" | "/my-list" | "/settings" | "/detail/:type/:id" | "/watch/:type/:id";
   };
   "routes/login.tsx": {
     id: "routes/login";
     page: "/login";
   };
-  "routes/settings.tsx": {
-    id: "routes/settings";
-    page: "/settings";
+  "routes/home.tsx": {
+    id: "routes/home";
+    page: "/";
   };
   "routes/search.tsx": {
     id: "routes/search";
     page: "/search";
   };
-  "routes/mylist.tsx": {
-    id: "routes/mylist";
-    page: "/mylist";
-  };
   "routes/discover.tsx": {
     id: "routes/discover";
     page: "/discover";
+  };
+  "routes/my-list.tsx": {
+    id: "routes/my-list";
+    page: "/my-list";
+  };
+  "routes/settings.tsx": {
+    id: "routes/settings";
+    page: "/settings";
   };
   "routes/detail.$type.$id.tsx": {
     id: "routes/detail.$type.$id";
@@ -84,12 +84,12 @@ type RouteFiles = {
 
 type RouteModules = {
   "root": typeof import("./app/root.tsx");
-  "routes/_index": typeof import("./app/routes/_index.tsx");
   "routes/login": typeof import("./app/routes/login.tsx");
-  "routes/settings": typeof import("./app/routes/settings.tsx");
+  "routes/home": typeof import("./app/routes/home.tsx");
   "routes/search": typeof import("./app/routes/search.tsx");
-  "routes/mylist": typeof import("./app/routes/mylist.tsx");
   "routes/discover": typeof import("./app/routes/discover.tsx");
+  "routes/my-list": typeof import("./app/routes/my-list.tsx");
+  "routes/settings": typeof import("./app/routes/settings.tsx");
   "routes/detail.$type.$id": typeof import("./app/routes/detail.$type.$id.tsx");
   "routes/watch.$type.$id": typeof import("./app/routes/watch.$type.$id.tsx");
 };

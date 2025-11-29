@@ -1,1 +1,0 @@
-import{w as t,p as e}from"./chunk-4WY6JWTD-DY61A93B.js";const n=t(function(){return e.jsxs("div",{className:"flex items-center justify-center h-screen bg-black text-white",children:[e.jsx("h1",{className:"text-4xl font-bold text-primary",children:"StreamFlix"}),e.jsx("p",{className:"mt-4 text-gray-400",children:"Welcome to your new streaming platform"})]})});export{n as default};

@@ -1,4 +1,5 @@
-import { useState, FormEvent } from 'react'
+import { useState } from 'react'
+import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router'
 import { signIn } from '@/services/authService'
 import { Button } from '@/components/common/Button'

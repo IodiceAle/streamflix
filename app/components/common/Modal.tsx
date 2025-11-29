@@ -1,4 +1,5 @@
-import { useEffect, useRef, ReactNode } from 'react'
+import { useEffect, useRef } from 'react'
+import type { ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '@/lib/utils'
 import { HiX } from 'react-icons/hi'
