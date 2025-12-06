@@ -61,7 +61,7 @@ export default function Home() {
             )}
 
             {/* Content Rows */}
-            <div className="relative z-10 -mt-20 space-y-1">
+            <div className="relative z-10 space-y-1 pt-4">
                 {trendingData?.results ? (
                     <ContentRow
                         title="🔥 Trending Now"
