@@ -1,0 +1,227 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Root Variables */
+:root {
+    --brand: #E50914;
+    --brand-dark: #B20710;
+    --surface: #0a0a0a;
+    --surface-elevated: #141414;
+    --surface-card: #1a1a1a;
+    --surface-hover: #252525;
+}
+
+/* Base Styles */
+@layer base {
+    * {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+        scroll-behavior: smooth;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+        @apply bg-surface text-white font-sans;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        overflow-x: hidden;
+    }
+
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        @apply bg-transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        @apply bg-white/20 rounded-full;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        @apply bg-white/30;
+    }
+
+    ::selection {
+        @apply bg-brand/40 text-white;
+    }
+}
+
+@layer components {
+    .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .skeleton {
+        @apply relative overflow-hidden bg-gradient-to-r from-surface-card via-surface-hover to-surface-card;
+        background-size: 200% 100%;
+        animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    }
+
+    @keyframes skeleton-shimmer {
+        0% {
+            background-position: 200% 0;
+        }
+
+        100% {
+            background-position: -200% 0;
+        }
+    }
+
+    .glass {
+        @apply bg-white/5 backdrop-blur-xl border border-white/10;
+    }
+
+    .glass-dark {
+        @apply bg-black/40 backdrop-blur-xl border border-white/5;
+    }
+
+    .gradient-text {
+        @apply bg-gradient-to-r from-white via-white to-white/60 bg-clip-text text-transparent;
+    }
+
+    .gradient-text-brand {
+        @apply bg-gradient-to-r from-brand to-red-400 bg-clip-text text-transparent;
+    }
+
+    .premium-card {
+        @apply relative overflow-hidden rounded-2xl bg-gradient-to-br from-surface-card to-surface border border-white/5;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .btn-primary {
+        @apply px-6 py-3 bg-gradient-to-r from-brand to-red-600 text-white font-semibold rounded-xl hover:opacity-90 active:scale-95 transition-all duration-200 shadow-lg shadow-brand/25 disabled:opacity-50 disabled:cursor-not-allowed;
+    }
+
+    .btn-secondary {
+        @apply px-6 py-3 bg-white/10 backdrop-blur text-white font-semibold rounded-xl hover:bg-white/20 active:scale-95 transition-all duration-200 border border-white/10;
+    }
+
+    .input-field {
+        @apply w-full px-4 py-4 bg-surface-card/50 rounded-xl text-white placeholder:text-text-muted border border-transparent focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent focus:bg-surface-card transition-all duration-200;
+    }
+
+    .badge {
+        @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-bold;
+    }
+
+    .badge-brand {
+        @apply bg-brand text-white;
+    }
+
+    .badge-outline {
+        @apply border border-white/30 text-white/80;
+    }
+
+    .safe-area-top {
+        padding-top: env(safe-area-inset-top);
+    }
+
+    .safe-area-bottom {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .text-shadow {
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    .text-shadow-lg {
+        text-shadow: 0 4px 16px rgba(0, 0, 0, 0.8);
+    }
+}
+
+@layer utilities {
+    .animate-fade-in {
+        animation: fadeIn 0.3s ease-out forwards;
+    }
+
+    .animate-fade-in-up {
+        animation: fadeInUp 0.4s ease-out forwards;
+    }
+
+    .animate-scale-in {
+        animation: scaleIn 0.2s ease-out forwards;
+    }
+
+    .animate-pulse-slow {
+        animation: pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    @keyframes pulse {
+
+        0%,
+        100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.7;
+        }
+    }
+}
+
+.line-clamp-1 {
+    -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+    -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+    -webkit-line-clamp: 3;
+}
+
+.line-clamp-1,
+.line-clamp-2,
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
