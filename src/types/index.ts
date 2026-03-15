@@ -106,6 +106,27 @@ export interface TMDBSeasonDetails {
     episodes: TMDBEpisode[]
 }
 
+export interface TMDBCastMember {
+    id: number
+    name: string
+    character: string
+    profile_path: string | null
+    order: number
+}
+
+export interface TMDBCrewMember {
+    id: number
+    name: string
+    job: string
+    department: string
+    profile_path: string | null
+}
+
+export interface TMDBCredits {
+    cast: TMDBCastMember[]
+    crew: TMDBCrewMember[]
+}
+
 // App Types
 export interface ContentItem {
     id: number
@@ -123,11 +144,15 @@ export interface WatchProgress {
     id: string
     user_id: string
     tmdb_id: number
-    media_type: 'movie' | 'tv'
+    type: 'movie' | 'tv'
     season?: number
     episode?: number
     progress_seconds: number
     duration_seconds: number
+    title?: string
+    poster_path?: string
+    backdrop_path?: string
+    completed?: boolean
     last_watched_at: string
 }
 
@@ -135,7 +160,10 @@ export interface MyListItem {
     id: string
     user_id: string
     tmdb_id: number
-    media_type: 'movie' | 'tv'
+    type: 'movie' | 'tv'
+    title?: string
+    poster_path?: string
+    backdrop_path?: string
     added_at: string
 }
 

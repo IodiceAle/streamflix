@@ -6,7 +6,7 @@ import type { MyListItem } from '@/types'
 interface MyListContextType {
     myList: MyListItem[]
     loading: boolean
-    addToList: (tmdbId: number, mediaType: 'movie' | 'tv') => Promise<void>
+    addToList: (tmdbId: number, mediaType: 'movie' | 'tv', meta?: { title?: string; posterPath?: string; backdropPath?: string }) => Promise<void>
     removeFromList: (tmdbId: number, mediaType: 'movie' | 'tv') => Promise<void>
     isInList: (tmdbId: number, mediaType: 'movie' | 'tv') => boolean
 }
@@ -46,7 +46,7 @@ export function MyListProvider({ children }: { children: ReactNode }) {
         fetchMyList()
     }, [fetchMyList])
 
-    const addToList = async (tmdbId: number, mediaType: 'movie' | 'tv') => {
+    const addToList = async (tmdbId: number, mediaType: 'movie' | 'tv', meta?: { title?: string; posterPath?: string; backdropPath?: string }) => {
         if (!user) return
 
         // Optimistic update
@@ -54,7 +54,10 @@ export function MyListProvider({ children }: { children: ReactNode }) {
             id: crypto.randomUUID(),
             user_id: user.id,
             tmdb_id: tmdbId,
-            media_type: mediaType,
+            type: mediaType,
+            title: meta?.title,
+            poster_path: meta?.posterPath,
+            backdrop_path: meta?.backdropPath,
             added_at: new Date().toISOString(),
         }
         setMyList((prev) => [newItem, ...prev])
@@ -63,7 +66,10 @@ export function MyListProvider({ children }: { children: ReactNode }) {
             const { error } = await supabase.from('my_list').insert({
                 user_id: user.id,
                 tmdb_id: tmdbId,
-                media_type: mediaType,
+                type: mediaType,
+                title: meta?.title,
+                poster_path: meta?.posterPath,
+                backdrop_path: meta?.backdropPath,
             })
 
             if (error) throw error
@@ -79,10 +85,10 @@ export function MyListProvider({ children }: { children: ReactNode }) {
 
         // Optimistic update
         const itemToRemove = myList.find(
-            (item) => item.tmdb_id === tmdbId && item.media_type === mediaType
+            (item) => item.tmdb_id === tmdbId && item.type === mediaType
         )
         setMyList((prev) =>
-            prev.filter((item) => !(item.tmdb_id === tmdbId && item.media_type === mediaType))
+            prev.filter((item) => !(item.tmdb_id === tmdbId && item.type === mediaType))
         )
 
         try {
@@ -91,7 +97,7 @@ export function MyListProvider({ children }: { children: ReactNode }) {
                 .delete()
                 .eq('user_id', user.id)
                 .eq('tmdb_id', tmdbId)
-                .eq('media_type', mediaType)
+                .eq('type', mediaType)
 
             if (error) throw error
         } catch (error) {
@@ -104,7 +110,7 @@ export function MyListProvider({ children }: { children: ReactNode }) {
     }
 
     const isInList = (tmdbId: number, mediaType: 'movie' | 'tv') => {
-        return myList.some((item) => item.tmdb_id === tmdbId && item.media_type === mediaType)
+        return myList.some((item) => item.tmdb_id === tmdbId && item.type === mediaType)
     }
 
     return (

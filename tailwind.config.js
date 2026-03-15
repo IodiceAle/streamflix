@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+    darkMode: 'class',
     content: [
         "./index.html",
         "./src/**/*.{js,ts,jsx,tsx}",
@@ -8,24 +9,24 @@ export default {
         extend: {
             colors: {
                 brand: {
-                    DEFAULT: '#E50914',
-                    dark: '#B20710',
-                    light: '#FF1A1A',
+                    DEFAULT: 'var(--brand)',
+                    dark: 'var(--brand-dark)',
+                    light: 'var(--brand-light)',
                 },
                 surface: {
-                    DEFAULT: '#0a0a0a',
-                    elevated: '#141414',
-                    card: '#1a1a1a',
-                    hover: '#252525',
+                    DEFAULT: 'var(--surface)',
+                    elevated: 'var(--surface-elevated)',
+                    card: 'var(--surface-card)',
+                    hover: 'var(--surface-hover)',
                 },
                 text: {
-                    primary: '#FFFFFF',
-                    secondary: '#B3B3B3',
-                    muted: '#6B6B6B',
+                    primary: 'var(--text-primary)',
+                    secondary: 'var(--text-secondary)',
+                    muted: 'var(--text-muted)',
                 },
             },
             fontFamily: {
-                sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                sans: ['Outfit', 'system-ui', '-apple-system', 'sans-serif'],
             },
             fontSize: {
                 '2xs': ['0.625rem', { lineHeight: '0.75rem' }],

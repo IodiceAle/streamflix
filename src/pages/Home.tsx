@@ -2,6 +2,8 @@ import { useQuery } from '@tanstack/react-query'
 import { getTrending, getPopularMovies, getPopularTVShows, getTopRatedMovies, discoverMovies } from '@/services/tmdb'
 import { HeroCarousel } from '@/components/content/HeroCarousel'
 import { ContentRow } from '@/components/content/ContentRow'
+import { Top10Row } from '@/components/content/Top10Row'
+import { ContinueWatchingRow } from '@/components/content/ContinueWatchingRow'
 import { HeroSkeleton, ContentRowSkeleton } from '@/components/ui/Skeleton'
 
 const GENRES = {
@@ -62,6 +64,8 @@ export default function Home() {
 
             {/* Content Rows */}
             <div className="relative z-10 space-y-1 pt-4">
+                {/* Continue Watching */}
+                <ContinueWatchingRow />
                 {trendingData?.results ? (
                     <ContentRow
                         title="🔥 Trending Now"
@@ -84,6 +88,15 @@ export default function Home() {
                     />
                 ) : (
                     <ContentRowSkeleton title="Popular Movies" />
+                )}
+
+                {/* Top 10 */}
+                {popularMovies?.results && (
+                    <Top10Row
+                        title="🏆 Top 10 Movies"
+                        items={popularMovies.results}
+                        type="movie"
+                    />
                 )}
 
                 {popularTV?.results ? (

@@ -13,6 +13,7 @@ import { useMyList } from '@/context/MyListContext'
 import { ContentRow } from '@/components/content/ContentRow'
 import { Modal } from '@/components/ui/Modal'
 import { DetailSkeleton } from '@/components/ui/Skeleton'
+import type { TMDBMovieDetails, TMDBTVDetails } from '@/types'
 
 export default function Detail() {
     const { type, id } = useParams<{ type: 'movie' | 'tv'; id: string }>()
@@ -49,13 +50,15 @@ export default function Detail() {
         return <DetailSkeleton />
     }
 
-    const title = isMovie ? (details as any).title : (details as any).name
+    // Type-safe property access
+    const title = isMovie ? (details as TMDBMovieDetails).title : (details as TMDBTVDetails).name
     const releaseDate = isMovie
-        ? (details as any).release_date
-        : (details as any).first_air_date
+        ? (details as TMDBMovieDetails).release_date
+        : (details as TMDBTVDetails).first_air_date
     const runtime = isMovie
-        ? (details as any).runtime
-        : (details as any).episode_run_time?.[0]
+        ? (details as TMDBMovieDetails).runtime
+        : (details as TMDBTVDetails).episode_run_time?.[0]
+    const tvDetails = !isMovie ? (details as TMDBTVDetails) : null
 
     const trailer = details.videos?.results?.find(
         (v) => v.type === 'Trailer' && v.site === 'YouTube'
@@ -79,7 +82,11 @@ export default function Detail() {
         if (inList) {
             removeFromList(Number(id), type!)
         } else {
-            addToList(Number(id), type!)
+            addToList(Number(id), type!, {
+                title,
+                posterPath: details.poster_path || undefined,
+                backdropPath: details.backdrop_path || undefined,
+            })
         }
     }
 
@@ -117,8 +124,8 @@ export default function Detail() {
                     </span>
                     {releaseDate && <span>{new Date(releaseDate).getFullYear()}</span>}
                     {runtime && <span>{formatRuntime(runtime)}</span>}
-                    {!isMovie && (
-                        <span>{(details as any).number_of_seasons} Season{(details as any).number_of_seasons > 1 ? 's' : ''}</span>
+                    {tvDetails && (
+                        <span>{tvDetails.number_of_seasons} Season{tvDetails.number_of_seasons > 1 ? 's' : ''}</span>
                     )}
                 </div>
 
@@ -177,8 +184,37 @@ export default function Detail() {
                     </button>
                 )}
 
+                {/* Cast & Crew */}
+                {(details as any).credits?.cast?.length > 0 && (
+                    <div className="space-y-3">
+                        <h2 className="text-xl font-semibold">Cast & Crew</h2>
+                        <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
+                            {(details as any).credits.cast.slice(0, 12).map((member: any) => (
+                                <div key={member.id} className="flex-shrink-0 w-20 text-center">
+                                    <div className="w-20 h-20 rounded-full overflow-hidden bg-surface-card mb-2">
+                                        {member.profile_path ? (
+                                            <img
+                                                src={`https://image.tmdb.org/t/p/w185${member.profile_path}`}
+                                                alt={member.name}
+                                                className="w-full h-full object-cover"
+                                                loading="lazy"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-text-muted text-2xl font-bold">
+                                                {member.name?.[0]}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <p className="text-xs font-medium text-white line-clamp-1">{member.name}</p>
+                                    <p className="text-xs text-text-muted line-clamp-1">{member.character}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {/* Episodes Section (TV Only) */}
-                {!isMovie && (details as any).seasons && (
+                {tvDetails?.seasons && (
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <h2 className="text-xl font-semibold">Episodes</h2>
@@ -187,9 +223,9 @@ export default function Detail() {
                                 onChange={(e) => setSelectedSeason(Number(e.target.value))}
                                 className="px-3 py-2 bg-surface-card rounded text-white text-sm"
                             >
-                                {(details as any).seasons
-                                    .filter((s: any) => s.season_number > 0)
-                                    .map((season: any) => (
+                                {tvDetails.seasons
+                                    .filter((s) => s.season_number > 0)
+                                    .map((season) => (
                                         <option key={season.id} value={season.season_number}>
                                             Season {season.season_number}
                                         </option>

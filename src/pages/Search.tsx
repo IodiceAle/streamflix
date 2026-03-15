@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Search as SearchIcon, X, Clock, Loader2, Sparkles } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import { useSearchParams } from 'react-router-dom'
 import { multiSearch, getTrending } from '@/services/tmdb'
 import { ContentCard } from '@/components/content/ContentCard'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -9,9 +10,11 @@ const RECENT_SEARCHES_KEY = 'streamflix_recent_searches'
 const MAX_RECENT_SEARCHES = 8
 
 export default function Search() {
+    const [searchParams, setSearchParams] = useSearchParams()
+    const initialQuery = searchParams.get('q') || ''
 
-    const [query, setQuery] = useState('')
-    const [debouncedQuery, setDebouncedQuery] = useState('')
+    const [query, setQuery] = useState(initialQuery)
+    const [debouncedQuery, setDebouncedQuery] = useState(initialQuery)
     const [recentSearches, setRecentSearches] = useState<string[]>([])
     const [isFocused, setIsFocused] = useState(false)
 
@@ -20,10 +23,32 @@ export default function Search() {
         if (saved) setRecentSearches(JSON.parse(saved))
     }, [])
 
+    // Sync state when URL params change (e.g., from TopNav)
     useEffect(() => {
-        const timer = setTimeout(() => setDebouncedQuery(query.trim()), 350)
+        const q = searchParams.get('q') || ''
+        if (q !== query && q !== debouncedQuery) {
+            setQuery(q)
+            setDebouncedQuery(q)
+        }
+    }, [searchParams])
+
+    // Update debounced value and sync URL when typing
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const trimmed = query.trim()
+            setDebouncedQuery(trimmed)
+            
+            // Only update URL if it differs to avoid infinite loops
+            if (trimmed !== (searchParams.get('q') || '')) {
+                if (trimmed) {
+                    setSearchParams({ q: trimmed }, { replace: true })
+                } else {
+                    setSearchParams({}, { replace: true })
+                }
+            }
+        }, 350)
         return () => clearTimeout(timer)
-    }, [query])
+    }, [query, setSearchParams])
 
     const { data: searchResults, isLoading: searchLoading } = useQuery({
         queryKey: ['search', debouncedQuery],

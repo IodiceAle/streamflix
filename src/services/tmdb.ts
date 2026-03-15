@@ -135,11 +135,11 @@ export const multiSearch = searchMulti
 
 // Details
 export const getMovieDetails = async (movieId: number): Promise<TMDBMovieDetails> => {
-    return fetchTMDB(`/movie/${movieId}`, { append_to_response: 'videos,similar' })
+    return fetchTMDB(`/movie/${movieId}`, { append_to_response: 'videos,similar,credits' })
 }
 
 export const getTVDetails = async (tvId: number): Promise<TMDBTVDetails> => {
-    return fetchTMDB(`/tv/${tvId}`, { append_to_response: 'videos,similar' })
+    return fetchTMDB(`/tv/${tvId}`, { append_to_response: 'videos,similar,credits' })
 }
 
 // TV Seasons

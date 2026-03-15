@@ -1,20 +1,17 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
 import { Bookmark, ChevronDown } from 'lucide-react'
 import { useMyList } from '@/context/MyListContext'
-import { getMovieDetails, getTVDetails } from '@/services/tmdb'
 import { ContentCard } from '@/components/content/ContentCard'
 import { Skeleton } from '@/components/ui/Skeleton'
 
-type SortOption = 'date-desc' | 'date-asc' | 'title-asc' | 'title-desc' | 'release'
+type SortOption = 'date-desc' | 'date-asc' | 'title-asc' | 'title-desc'
 
 const sortOptions: { value: SortOption; label: string }[] = [
     { value: 'date-desc', label: 'Date Added (Newest)' },
     { value: 'date-asc', label: 'Date Added (Oldest)' },
     { value: 'title-asc', label: 'Title A-Z' },
     { value: 'title-desc', label: 'Title Z-A' },
-    { value: 'release', label: 'Release Date' },
 ]
 
 export default function MyList() {
@@ -22,68 +19,24 @@ export default function MyList() {
     const { myList, loading: listLoading } = useMyList()
     const [sortBy, setSortBy] = useState<SortOption>('date-desc')
 
-    // Fetch details for each item in the list
-    const { data: itemDetails, isLoading: detailsLoading } = useQuery({
-        queryKey: ['mylist-details', myList.map((i) => `${i.media_type}-${i.tmdb_id}`)],
-        queryFn: async () => {
-            const details = await Promise.all(
-                myList.map(async (item) => {
-                    try {
-                        if (item.media_type === 'movie') {
-                            const data = await getMovieDetails(item.tmdb_id)
-                            return {
-                                id: item.tmdb_id,
-                                type: 'movie' as const,
-                                title: data.title,
-                                posterPath: data.poster_path,
-                                releaseDate: data.release_date,
-                                addedAt: item.added_at,
-                            }
-                        } else {
-                            const data = await getTVDetails(item.tmdb_id)
-                            return {
-                                id: item.tmdb_id,
-                                type: 'tv' as const,
-                                title: data.name,
-                                posterPath: data.poster_path,
-                                releaseDate: data.first_air_date,
-                                addedAt: item.added_at,
-                            }
-                        }
-                    } catch {
-                        return null
-                    }
-                })
-            )
-            return details.filter(Boolean)
-        },
-        enabled: myList.length > 0,
-    })
-
-    // Sort items
+    // Sort items using stored metadata (no N+1 TMDB calls)
     const sortedItems = useMemo(() => {
-        if (!itemDetails) return []
-
-        const items = [...itemDetails]
+        const items = [...myList]
         switch (sortBy) {
             case 'date-desc':
-                return items.sort((a, b) => new Date(b!.addedAt).getTime() - new Date(a!.addedAt).getTime())
+                return items.sort((a, b) => new Date(b.added_at).getTime() - new Date(a.added_at).getTime())
             case 'date-asc':
-                return items.sort((a, b) => new Date(a!.addedAt).getTime() - new Date(b!.addedAt).getTime())
+                return items.sort((a, b) => new Date(a.added_at).getTime() - new Date(b.added_at).getTime())
             case 'title-asc':
-                return items.sort((a, b) => a!.title.localeCompare(b!.title))
+                return items.sort((a, b) => (a.title || '').localeCompare(b.title || ''))
             case 'title-desc':
-                return items.sort((a, b) => b!.title.localeCompare(a!.title))
-            case 'release':
-                return items.sort((a, b) => new Date(b!.releaseDate).getTime() - new Date(a!.releaseDate).getTime())
+                return items.sort((a, b) => (b.title || '').localeCompare(a.title || ''))
             default:
                 return items
         }
-    }, [itemDetails, sortBy])
+    }, [myList, sortBy])
 
-    const isLoading = listLoading || detailsLoading
-
-    if (!isLoading && myList.length === 0) {
+    if (!listLoading && myList.length === 0) {
         return (
             <div className="min-h-screen bg-surface flex flex-col items-center justify-center px-4 text-center">
                 <Bookmark className="w-16 h-16 text-text-muted mb-4" />
@@ -102,7 +55,7 @@ export default function MyList() {
     }
 
     return (
-        <div className="min-h-screen bg-surface pt-4">
+        <div className="min-h-screen bg-surface pt-4 pb-24">
             {/* Header */}
             <div className="px-4 mb-6">
                 <h1 className="text-2xl font-bold mb-4">My List</h1>
@@ -126,7 +79,7 @@ export default function MyList() {
 
             {/* Grid */}
             <div className="px-4">
-                {isLoading ? (
+                {listLoading ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                         {Array.from({ length: 12 }).map((_, i) => (
                             <div key={i} className="aspect-poster">
@@ -138,11 +91,11 @@ export default function MyList() {
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                         {sortedItems.map((item) => (
                             <ContentCard
-                                key={`${item!.type}-${item!.id}`}
-                                id={item!.id}
-                                type={item!.type}
-                                title={item!.title}
-                                posterPath={item!.posterPath}
+                                key={`${item.type}-${item.tmdb_id}`}
+                                id={item.tmdb_id}
+                                type={item.type}
+                                title={item.title || 'Untitled'}
+                                posterPath={item.poster_path || null}
                             />
                         ))}
                     </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Mail, Lock, Eye, EyeOff, Loader2, Play } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
@@ -15,10 +15,14 @@ export default function Auth() {
 
     const from = (location.state as any)?.from?.pathname || '/'
 
-    if (user) {
-        navigate(from, { replace: true })
-        return null
-    }
+    // Redirect if already authenticated
+    useEffect(() => {
+        if (user) {
+            navigate(from, { replace: true })
+        }
+    }, [user, from, navigate])
+
+    if (user) return null
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -30,7 +34,15 @@ export default function Auth() {
             if (authError) throw authError
             navigate(from, { replace: true })
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Invalid credentials')
+            const msg = err instanceof Error ? err.message : 'Invalid credentials'
+            // Map raw Supabase errors to friendly messages
+            const friendlyErrors: Record<string, string> = {
+                'missing email or phone': 'Please enter your email address.',
+                'Invalid login credentials': 'Incorrect email or password.',
+                'Email not confirmed': 'Please verify your email before signing in.',
+                'User not found': 'No account found with this email.',
+            }
+            setError(friendlyErrors[msg] || msg)
         } finally {
             setLoading(false)
         }
@@ -134,7 +146,7 @@ export default function Auth() {
 
             {/* Footer */}
             <p className="relative mt-12 text-text-muted text-xs animate-fade-in" style={{ animationDelay: '300ms' }}>
-                © 2024 StreamFlix. All rights reserved.
+                © {new Date().getFullYear()} StreamFlix. All rights reserved.
             </p>
         </div>
     )

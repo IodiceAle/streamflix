@@ -12,6 +12,8 @@ interface ContinueWatchingCardProps {
     season?: number
     episode?: number
     progress: number
+    title?: string
+    posterPath?: string
 }
 
 function ContinueWatchingCard({
@@ -20,6 +22,8 @@ function ContinueWatchingCard({
     season,
     episode,
     progress,
+    title: propTitle,
+    posterPath: propPosterPath,
 }: ContinueWatchingCardProps) {
     const navigate = useNavigate()
 
@@ -31,12 +35,13 @@ function ContinueWatchingCard({
             }
             return getTVDetails(tmdbId)
         },
+        enabled: !propTitle,
     })
 
-    if (!details) return null
+    const title = propTitle || (details ? ('title' in details ? details.title : details.name) : '')
+    const posterPath = propPosterPath || details?.poster_path || null
 
-    const title = 'title' in details ? details.title : details.name
-    const posterPath = details.poster_path
+    if (!title) return null
 
     const handleClick = () => {
         if (mediaType === 'movie') {
@@ -103,12 +108,14 @@ export function ContinueWatchingRow() {
 
                     return (
                         <ContinueWatchingCard
-                            key={`${item.media_type}-${item.tmdb_id}-${item.season}-${item.episode}`}
+                            key={`${item.type}-${item.tmdb_id}-${item.season}-${item.episode}`}
                             tmdbId={item.tmdb_id}
-                            mediaType={item.media_type}
+                            mediaType={item.type}
                             season={item.season}
                             episode={item.episode}
                             progress={progress}
+                            title={item.title}
+                            posterPath={item.poster_path}
                         />
                     )
                 })}

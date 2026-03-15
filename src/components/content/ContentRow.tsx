@@ -105,6 +105,7 @@ export function ContentRow({
                                     title={isMovie ? item.title : item.name}
                                     posterPath={item.poster_path}
                                     rating={item.vote_average}
+                                    releaseDate={isMovie ? item.release_date : item.first_air_date}
                                 />
                             </div>
                         )

@@ -48,7 +48,7 @@ export default function Discover() {
     const loadMoreRef = useRef<HTMLDivElement>(null)
 
     // Get filter state from URL
-    const contentType = (searchParams.get('type') as ContentType) || 'movie'
+    const contentType = (searchParams.get('type') as ContentType) || 'all'
     const selectedGenres = searchParams.get('genres')?.split(',').filter(Boolean) || []
     const sortBy = (searchParams.get('sort') as SortOption) || 'popularity.desc'
     const yearFrom = searchParams.get('yearFrom') || ''
@@ -217,16 +217,16 @@ export default function Discover() {
 
                 {/* Type tabs */}
                 <div className="flex gap-2 p-1 bg-surface-card rounded-xl">
-                    {(['movie', 'tv'] as const).map((t) => (
+                    {([['all', 'All'], ['movie', 'Movies'], ['tv', 'TV Shows']] as const).map(([t, label]) => (
                         <button
                             key={t}
-                            onClick={() => updateParams('type', t)}
-                            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${contentType === t
+                            onClick={() => updateParams('type', t === 'all' ? null : t)}
+                            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${contentType === t || (t === 'all' && !searchParams.get('type'))
                                     ? 'bg-white text-black shadow-md'
                                     : 'text-text-secondary hover:text-white'
                                 }`}
                         >
-                            {t === 'movie' ? 'Movies' : 'TV Shows'}
+                            {label}
                         </button>
                     ))}
                 </div>
@@ -362,6 +362,8 @@ export default function Discover() {
                                         type={isMovieItem ? 'movie' : 'tv'}
                                         title={isMovieItem ? item.title : item.name}
                                         posterPath={item.poster_path}
+                                        rating={item.vote_average}
+                                        releaseDate={isMovieItem ? item.release_date : item.first_air_date}
                                     />
                                 )
                             })}
