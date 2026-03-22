@@ -23,9 +23,9 @@ const buildQueryString = (options: Record<string, string>): string => {
 }
 
 export const getMovieEmbedUrl = (tmdbId: number, startAt?: number): string => {
-    const params = getPlayerOptions()
+    const params: Record<string, string> = { ...getPlayerOptions() }
     if (startAt) {
-        (params as any).startAt = String(startAt)
+        params.startAt = String(startAt)
     }
     return `${VIXSRC_BASE}/movie/${tmdbId}?${buildQueryString(params)}`
 }
@@ -36,9 +36,9 @@ export const getTVEmbedUrl = (
     episode: number,
     startAt?: number
 ): string => {
-    const params = getPlayerOptions()
+    const params: Record<string, string> = { ...getPlayerOptions() }
     if (startAt) {
-        (params as any).startAt = String(startAt)
+        params.startAt = String(startAt)
     }
     return `${VIXSRC_BASE}/tv/${tmdbId}/${season}/${episode}?${buildQueryString(params)}`
 }

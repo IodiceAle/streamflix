@@ -48,6 +48,7 @@ export default function Search() {
             }
         }, 350)
         return () => clearTimeout(timer)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [query, setSearchParams])
 
     const { data: searchResults, isLoading: searchLoading } = useQuery({

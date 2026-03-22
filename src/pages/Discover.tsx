@@ -100,7 +100,7 @@ export default function Discover() {
         isLoading: moviesLoading,
     } = useInfiniteQuery({
         queryKey: ['discover', 'movie', sortBy, selectedGenres, language, minRating, yearFrom, yearTo],
-        queryFn: ({ pageParam = 1 }) => discoverMovies(buildApiParams(pageParam) as any),
+        queryFn: ({ pageParam = 1 }) => discoverMovies(buildApiParams(pageParam) as Parameters<typeof discoverMovies>[0]),
         getNextPageParam: (lastPage, pages) => {
             if (pages.length < lastPage.total_pages) return pages.length + 1
             return undefined
@@ -118,7 +118,7 @@ export default function Discover() {
         isLoading: tvLoading,
     } = useInfiniteQuery({
         queryKey: ['discover', 'tv', sortBy, selectedGenres, language, minRating, yearFrom, yearTo],
-        queryFn: ({ pageParam = 1 }) => discoverTVShows(buildApiParams(pageParam) as any),
+        queryFn: ({ pageParam = 1 }) => discoverTVShows(buildApiParams(pageParam) as Parameters<typeof discoverTVShows>[0]),
         getNextPageParam: (lastPage, pages) => {
             if (pages.length < lastPage.total_pages) return pages.length + 1
             return undefined

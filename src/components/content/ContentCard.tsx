@@ -40,7 +40,11 @@ export function ContentCard({
     const handleListToggle = useCallback(
         (e: React.MouseEvent) => {
             e.stopPropagation()
-            inList ? removeFromList(id, type) : addToList(id, type)
+            if (inList) {
+                removeFromList(id, type)
+            } else {
+                addToList(id, type)
+            }
         },
         [inList, id, type, addToList, removeFromList]
     )

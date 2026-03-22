@@ -72,7 +72,8 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
 
             if (error) {
                 if (error.code === 'PGRST116') {
-                    const { email: _email, ...settingsWithoutEmail } = settings
+                    const settingsWithoutEmail = { ...settings }
+                    delete (settingsWithoutEmail as Partial<AppSettings>).email
                     await supabase.from('profiles').insert({
                         id: user.id,
                         // DO NOT INSERT EMAIL, profiles table does not have an email column

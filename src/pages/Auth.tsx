@@ -13,7 +13,7 @@ export default function Auth() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    const from = (location.state as any)?.from?.pathname || '/'
+    const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/'
 
     // Redirect if already authenticated
     useEffect(() => {

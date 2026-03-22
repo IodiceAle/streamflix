@@ -13,7 +13,7 @@ import { useMyList } from '@/context/MyListContext'
 import { ContentRow } from '@/components/content/ContentRow'
 import { Modal } from '@/components/ui/Modal'
 import { DetailSkeleton } from '@/components/ui/Skeleton'
-import type { TMDBMovieDetails, TMDBTVDetails } from '@/types'
+import type { TMDBMovieDetails, TMDBTVDetails, TMDBCastMember } from '@/types'
 
 export default function Detail() {
     const { type, id } = useParams<{ type: 'movie' | 'tv'; id: string }>()
@@ -185,11 +185,11 @@ export default function Detail() {
                 )}
 
                 {/* Cast & Crew */}
-                {(details as any).credits?.cast?.length > 0 && (
+                {(details as TMDBMovieDetails & { credits?: { cast: TMDBCastMember[] } }).credits?.cast?.length && (
                     <div className="space-y-3">
                         <h2 className="text-xl font-semibold">Cast & Crew</h2>
                         <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
-                            {(details as any).credits.cast.slice(0, 12).map((member: any) => (
+                            {((details as TMDBMovieDetails & { credits?: { cast: TMDBCastMember[] } }).credits?.cast ?? []).slice(0, 12).map((member: TMDBCastMember) => (
                                 <div key={member.id} className="flex-shrink-0 w-20 text-center">
                                     <div className="w-20 h-20 rounded-full overflow-hidden bg-surface-card mb-2">
                                         {member.profile_path ? (
