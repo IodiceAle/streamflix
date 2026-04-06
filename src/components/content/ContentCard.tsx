@@ -56,7 +56,7 @@ export function ContentCard({
 
     return (
         <motion.div
-            className="relative cursor-pointer w-full h-full"
+            className="group/card relative cursor-pointer w-full h-full"
             onClick={handleClick}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
@@ -80,9 +80,11 @@ export function ContentCard({
 
                 {/* Poster */}
                 <img
-                    src={getImageUrl(posterPath, 'w500')}
+                    src={getImageUrl(posterPath, 'w342')}
                     alt={title}
                     loading="lazy"
+                    width={342}
+                    height={513}
                     className={`w-full h-full object-cover transition-all duration-700 ${imageLoaded ? 'opacity-100' : 'opacity-0'
                         }`}
                     onLoad={() => setImageLoaded(true)}
@@ -104,23 +106,22 @@ export function ContentCard({
                     </div>
                 )}
 
-                {/* Gradient overlay */}
-                <div className={`absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-60'
+                {/* Gradient overlay — always visible on mobile for readability */}
+                <div className={`absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent transition-opacity duration-300 opacity-70 md:opacity-60 ${isHovered ? 'md:opacity-100' : ''
                     }`} />
 
-                {/* Hover overlay */}
+                {/* Interactive overlay — always visible on mobile, hover-only on desktop */}
                 {showOverlay && (
                     <div
-                        className={`absolute inset-0 flex flex-col items-center justify-center gap-2 transition-all duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'
-                            }`}
+                        className={`absolute inset-0 flex flex-col items-center justify-center gap-2 transition-all duration-300 opacity-100 md:opacity-0 md:group-hover/card:opacity-100`}
                     >
                         {/* Play button */}
                         <button
                             onClick={handlePlayClick}
-                            className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white flex items-center justify-center transition-transform duration-200 hover:scale-110 active:scale-95 shadow-xl"
+                            className="w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full bg-white/90 md:bg-white flex items-center justify-center transition-transform duration-200 hover:scale-110 active:scale-95 shadow-xl"
                             aria-label={`Play ${title}`}
                         >
-                            <Play className="w-5 h-5 md:w-6 md:h-6 text-black fill-black ml-0.5" />
+                            <Play className="w-4 h-4 md:w-5 md:h-5 lg:w-6 lg:h-6 text-black fill-black ml-0.5" />
                         </button>
 
                         {/* Add to list */}
@@ -138,10 +139,9 @@ export function ContentCard({
                     </div>
                 )}
 
-                {/* Title at bottom */}
-                <div className={`absolute bottom-0 left-0 right-0 p-3 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'
-                    }`}>
-                    <p className="text-white text-xs md:text-sm font-semibold line-clamp-2 text-shadow">
+                {/* Title at bottom — always visible on mobile */}
+                <div className={`absolute bottom-0 left-0 right-0 p-2 md:p-3 transition-opacity duration-300 opacity-100 md:opacity-0 md:group-hover/card:opacity-100`}>
+                    <p className="text-white text-[11px] md:text-xs lg:text-sm font-semibold line-clamp-2 text-shadow">
                         {title}
                     </p>
                 </div>

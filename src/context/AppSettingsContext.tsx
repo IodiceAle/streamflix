@@ -3,7 +3,7 @@ import { supabase } from '@/services/supabase'
 import { useAuth } from './AuthContext'
 
 export interface AppSettings {
-    theme: 'dark' | 'light' | 'system'
+    theme: 'dark'
     language: string
     subtitle_language: string
     auto_play: boolean
@@ -113,35 +113,10 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
         fetchSettings()
     }, [fetchSettings])
 
-    // Apply theme to document
+    // Apply dark theme to document
     useEffect(() => {
-        const root = document.documentElement
-        let effectiveTheme = settings.theme
-
-        if (effectiveTheme === 'system') {
-            effectiveTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-        }
-
-        if (effectiveTheme === 'dark') {
-            root.classList.add('dark')
-        } else {
-            root.classList.remove('dark')
-        }
-
-        // Listen for system theme changes
-        if (settings.theme === 'system') {
-            const mq = window.matchMedia('(prefers-color-scheme: dark)')
-            const handler = (e: MediaQueryListEvent) => {
-                if (e.matches) {
-                    root.classList.add('dark')
-                } else {
-                    root.classList.remove('dark')
-                }
-            }
-            mq.addEventListener('change', handler)
-            return () => mq.removeEventListener('change', handler)
-        }
-    }, [settings.theme])
+        document.documentElement.classList.add('dark')
+    }, [])
 
     const syncToLocalStorage = (s: AppSettings) => {
         localStorage.setItem('streamflix_theme', s.theme)

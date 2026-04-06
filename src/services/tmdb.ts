@@ -126,7 +126,7 @@ export const searchMulti = async (
         { query, page: String(page) }
     )
     // Filter out people from results
-    data.results = data.results.filter((item) => item.media_type !== 'person' as unknown)
+    data.results = data.results.filter((item) => item.media_type !== 'person')
     return data
 }
 

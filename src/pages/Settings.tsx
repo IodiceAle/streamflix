@@ -3,7 +3,6 @@ import { useAuth } from '@/context/AuthContext'
 import { useAppSettings } from '@/context/AppSettingsContext'
 import { Modal } from '@/components/ui/Modal'
 
-type Theme = 'dark' | 'light' | 'system'
 type Quality = 'auto' | '1080p' | '720p' | '480p'
 
 import { useState } from 'react'
@@ -41,12 +40,10 @@ export default function Settings() {
     const { user, signOut } = useAuth()
     const { settings, updateSetting } = useAppSettings()
 
-    const [showThemeModal, setShowThemeModal] = useState(false)
     const [showQualityModal, setShowQualityModal] = useState(false)
     const [showLanguageModal, setShowLanguageModal] = useState(false)
     const [showSubtitleModal, setShowSubtitleModal] = useState(false)
 
-    const themeLabels: Record<Theme, string> = { dark: 'Dark', light: 'Light', system: 'System' }
     const qualityLabels: Record<Quality, string> = { auto: 'Auto', '1080p': '1080p HD', '720p': '720p', '480p': '480p' }
     const getLanguageName = (code: string) => languages.find(l => l.code === code)?.name || code
     const getSubtitleName = (code: string) => subtitleLanguages.find(l => l.code === code)?.name || code
@@ -61,7 +58,7 @@ export default function Settings() {
 
                 {/* Appearance */}
                 <Section title="Appearance">
-                    <SettingButton icon={Palette} iconBg="bg-purple-500/20" iconColor="text-purple-400" label="Theme" description={themeLabels[settings.theme]} onClick={() => setShowThemeModal(true)} />
+                    <SettingItem icon={Palette} iconBg="bg-purple-500/20" iconColor="text-purple-400" label="Theme" description="Dark" />
                 </Section>
 
                 {/* Language & Audio */}
@@ -91,14 +88,7 @@ export default function Settings() {
                 )}
             </div>
 
-            {/* Theme Modal */}
-            <Modal isOpen={showThemeModal} onClose={() => setShowThemeModal(false)} title="Choose Theme">
-                <div className="space-y-2">
-                    {(['dark', 'light', 'system'] as Theme[]).map(t => (
-                        <ModalOption key={t} label={themeLabels[t]} selected={settings.theme === t} onClick={() => { updateSetting('theme', t); setShowThemeModal(false) }} />
-                    ))}
-                </div>
-            </Modal>
+
 
             {/* Quality Modal */}
             <Modal isOpen={showQualityModal} onClose={() => setShowQualityModal(false)} title="Video Quality">

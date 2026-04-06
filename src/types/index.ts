@@ -32,7 +32,7 @@ export interface TMDBTVShow {
     original_language: string
 }
 
-export type TMDBContent = (TMDBMovie | TMDBTVShow) & { media_type?: 'movie' | 'tv' }
+export type TMDBContent = (TMDBMovie | TMDBTVShow) & { media_type?: 'movie' | 'tv' | 'person' }
 
 export interface TMDBGenre {
     id: number
@@ -61,6 +61,7 @@ export interface TMDBMovieDetails extends TMDBMovie {
     } | null
     videos: { results: TMDBVideo[] }
     similar: { results: TMDBMovie[] }
+    credits?: TMDBCredits
 }
 
 export interface TMDBTVDetails extends TMDBTVShow {
@@ -73,6 +74,7 @@ export interface TMDBTVDetails extends TMDBTVShow {
     seasons: TMDBSeason[]
     videos: { results: TMDBVideo[] }
     similar: { results: TMDBTVShow[] }
+    credits?: TMDBCredits
 }
 
 export interface TMDBSeason {

@@ -96,7 +96,7 @@ export function ContentRow({
                         return (
                             <div
                                 key={`${item.id}-${index}`}
-                                className="flex-shrink-0 w-[110px] sm:w-[130px] md:w-[150px] lg:w-[170px]"
+                                className="flex-shrink-0 w-[130px] sm:w-[145px] md:w-[160px] lg:w-[180px] 3xl:w-[200px]"
                                 style={{ scrollSnapAlign: 'start' }}
                             >
                                 <ContentCard

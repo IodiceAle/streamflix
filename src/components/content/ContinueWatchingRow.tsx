@@ -90,7 +90,10 @@ function ContinueWatchingCard({
 export function ContinueWatchingRow() {
     const { continueWatching, loading } = useContinueWatching()
 
-    if (loading || continueWatching.length === 0) {
+    // Filter out completed items — only show in-progress content
+    const inProgressItems = continueWatching.filter((item) => !item.completed)
+
+    if (loading || inProgressItems.length === 0) {
         return null
     }
 
@@ -100,7 +103,7 @@ export function ContinueWatchingRow() {
                 Continue Watching
             </h2>
             <div className="flex gap-3 px-4 overflow-x-auto hide-scrollbar">
-                {continueWatching.slice(0, 10).map((item) => {
+                {inProgressItems.slice(0, 10).map((item) => {
                     const progress =
                         item.duration_seconds > 0
                             ? (item.progress_seconds / item.duration_seconds) * 100

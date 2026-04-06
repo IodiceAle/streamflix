@@ -116,12 +116,12 @@ export default function Watch() {
                     </div>
 
                     {/* Right: Actions */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                         {/* Mark as Watched button */}
                         <button
                             onClick={handleMarkAsWatched}
                             disabled={isMarkedWatched || alreadyCompleted}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 md:px-4 md:py-2 rounded-lg text-xs md:text-sm font-medium transition-all ${isMarkedWatched || alreadyCompleted
+                            className={`flex items-center gap-1.5 px-2 py-1.5 sm:px-3 md:px-4 md:py-2 rounded-lg text-xs md:text-sm font-medium transition-all ${isMarkedWatched || alreadyCompleted
                                 ? 'bg-green-500/20 text-green-400 border border-green-500/30'
                                 : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
                                 }`}
@@ -143,7 +143,7 @@ export default function Watch() {
                         {hasNextEpisode && (
                             <button
                                 onClick={handleNextEpisode}
-                                className="flex items-center gap-1.5 px-3 py-1.5 md:px-4 md:py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs md:text-sm font-medium transition-colors border border-white/20"
+                                className="flex items-center gap-1.5 px-2 py-1.5 sm:px-3 md:px-4 md:py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs md:text-sm font-medium transition-colors border border-white/20"
                             >
                                 <span className="hidden sm:inline">Next</span>
                                 <SkipForward className="w-4 h-4" />

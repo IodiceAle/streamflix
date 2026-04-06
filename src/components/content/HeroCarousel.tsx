@@ -100,7 +100,7 @@ export function HeroCarousel({
 
     return (
         <motion.div
-            className="relative w-full min-h-[70vh] sm:min-h-[60vh] md:min-h-[70vh] lg:min-h-[80vh] overflow-hidden bg-black"
+            className="relative w-full min-h-[50vh] sm:min-h-[55vh] md:min-h-[70vh] lg:min-h-[80vh] overflow-hidden bg-black"
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
             drag="x"
@@ -129,6 +129,9 @@ export function HeroCarousel({
                         alt=""
                         className="w-full h-full object-cover object-center"
                         loading="eager"
+                        fetchPriority="high"
+                        width={1280}
+                        height={720}
                         draggable="false"
                     />
                     {/* Image overlay for depth */}
@@ -241,12 +244,17 @@ export function HeroCarousel({
                         <button
                             key={index}
                             onClick={() => goToSlide(index)}
-                            className={`rounded-full transition-all duration-300 ${index === currentIndex
-                                ? 'bg-white w-6 sm:w-8 h-1.5 sm:h-2 shadow-[0_0_8px_rgba(255,255,255,0.8)]'
-                                : 'bg-white/30 w-1.5 sm:w-2 h-1.5 sm:h-2 hover:bg-white/50'
+                            className={`rounded-full transition-all duration-300 p-2 -m-1 ${index === currentIndex
+                                ? 'sm:p-2.5 sm:-m-1.5'
+                                : ''
                                 }`}
                             aria-label={`Go to slide ${index + 1}`}
-                        />
+                        >
+                            <span className={`block rounded-full transition-all duration-300 ${index === currentIndex
+                                ? 'bg-white w-6 sm:w-8 h-1.5 sm:h-2 shadow-[0_0_8px_rgba(255,255,255,0.8)]'
+                                : 'bg-white/30 w-1.5 sm:w-2 h-1.5 sm:h-2 hover:bg-white/50'
+                                }`} />
+                        </button>
                     ))}
                 </div>
             )}

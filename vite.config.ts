@@ -17,7 +17,7 @@ export default defineConfig({
                 theme_color: '#141414',
                 background_color: '#141414',
                 display: 'standalone',
-                orientation: 'portrait',
+                orientation: 'any',
                 icons: [
                     {
                         src: 'pwa-192x192.png',
@@ -38,11 +38,37 @@ export default defineConfig({
                 ]
             },
             workbox: {
+                navigationPreload: true,
                 globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
                 runtimeCaching: [
                     {
-                        urlPattern: /^https:\/\/api\.themoviedb\.org\/.*/i,
+                        urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+                        handler: 'StaleWhileRevalidate',
+                        options: {
+                            cacheName: 'google-fonts-stylesheets',
+                            expiration: {
+                                maxEntries: 10,
+                                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+                            }
+                        }
+                    },
+                    {
+                        urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
                         handler: 'CacheFirst',
+                        options: {
+                            cacheName: 'google-fonts-webfonts',
+                            expiration: {
+                                maxEntries: 30,
+                                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+                            },
+                            cacheableResponse: {
+                                statuses: [0, 200]
+                            }
+                        }
+                    },
+                    {
+                        urlPattern: /^https:\/\/api\.themoviedb\.org\/.*/i,
+                        handler: 'StaleWhileRevalidate',
                         options: {
                             cacheName: 'tmdb-api-cache',
                             expiration: {
