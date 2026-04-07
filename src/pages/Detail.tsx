@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Play, Plus, Check, Share2, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
 import {
@@ -24,7 +24,14 @@ export default function Detail() {
     const [showTrailerModal, setShowTrailerModal] = useState(false)
 
     const isMovie = type === 'movie'
-    const inList = isInList(Number(id), type!)
+    const numericId = Number(id)
+
+    // Validate route parameters
+    if (!numericId || numericId <= 0 || !Number.isInteger(numericId) || (type !== 'movie' && type !== 'tv')) {
+        return <Navigate to="/" replace />
+    }
+
+    const inList = isInList(numericId, type!)
 
     // Fetch details
     const { data: details, isLoading } = useQuery({
@@ -323,6 +330,8 @@ export default function Detail() {
                         <iframe
                             src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1`}
                             className="w-full h-full rounded"
+                            sandbox="allow-scripts allow-same-origin allow-fullscreen allow-popups"
+                            referrerPolicy="no-referrer"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
                         />

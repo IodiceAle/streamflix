@@ -3,6 +3,9 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { Mail, Lock, Eye, EyeOff, Loader2, Play } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 
+const MAX_ATTEMPTS = 5
+const LOCKOUT_MS = 30_000
+
 export default function Auth() {
     const navigate = useNavigate()
     const location = useLocation()
@@ -12,8 +15,12 @@ export default function Auth() {
     const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [failedAttempts, setFailedAttempts] = useState(0)
+    const [lockedUntil, setLockedUntil] = useState<number | null>(null)
 
-    const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/'
+    // Validate redirect path to prevent open redirects
+    const rawFrom = (location.state as { from?: { pathname: string } })?.from?.pathname || '/'
+    const from = rawFrom.startsWith('/') && !rawFrom.startsWith('//') ? rawFrom : '/'
 
     // Redirect if already authenticated
     useEffect(() => {
@@ -24,25 +31,47 @@ export default function Auth() {
 
     if (user) return null
 
+    const isLockedOut = lockedUntil !== null && Date.now() < lockedUntil
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setError(null)
+
+        // Check rate limiting
+        if (isLockedOut) {
+            const secondsLeft = Math.ceil((lockedUntil! - Date.now()) / 1000)
+            setError(`Too many failed attempts. Please wait ${secondsLeft} seconds.`)
+            return
+        }
+
         setLoading(true)
 
         try {
             const { error: authError } = await signIn(email, password)
             if (authError) throw authError
+            setFailedAttempts(0)
             navigate(from, { replace: true })
         } catch (err) {
-            const msg = err instanceof Error ? err.message : 'Invalid credentials'
-            // Map raw Supabase errors to friendly messages
-            const friendlyErrors: Record<string, string> = {
-                'missing email or phone': 'Please enter your email address.',
-                'Invalid login credentials': 'Incorrect email or password.',
-                'Email not confirmed': 'Please verify your email before signing in.',
-                'User not found': 'No account found with this email.',
+            const newAttempts = failedAttempts + 1
+            setFailedAttempts(newAttempts)
+
+            if (newAttempts >= MAX_ATTEMPTS) {
+                setLockedUntil(Date.now() + LOCKOUT_MS)
+                setError(`Too many failed attempts. Please wait 30 seconds.`)
+                setTimeout(() => {
+                    setLockedUntil(null)
+                    setFailedAttempts(0)
+                }, LOCKOUT_MS)
+            } else {
+                const msg = err instanceof Error ? err.message : 'Invalid credentials'
+                const friendlyErrors: Record<string, string> = {
+                    'missing email or phone': 'Please enter your email address.',
+                    'Invalid login credentials': 'Incorrect email or password.',
+                    'Email not confirmed': 'Please verify your email before signing in.',
+                    'User not found': 'No account found with this email.',
+                }
+                setError(friendlyErrors[msg] || msg)
             }
-            setError(friendlyErrors[msg] || msg)
         } finally {
             setLoading(false)
         }
@@ -92,6 +121,7 @@ export default function Auth() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="you@example.com"
                                     className="input-field pl-12"
+                                    maxLength={254}
                                     required
                                 />
                             </div>
@@ -108,6 +138,7 @@ export default function Auth() {
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
                                     className="input-field pl-12 pr-12"
+                                    maxLength={128}
                                     required
                                 />
                                 <button
@@ -130,11 +161,11 @@ export default function Auth() {
                         {/* Submit */}
                         <button
                             type="submit"
-                            disabled={loading}
+                            disabled={loading || isLockedOut}
                             className="btn-primary w-full flex items-center justify-center gap-2 py-4"
                         >
                             {loading && <Loader2 className="w-5 h-5 animate-spin" />}
-                            Sign In
+                            {isLockedOut ? 'Temporarily Locked' : 'Sign In'}
                         </button>
                     </form>
 

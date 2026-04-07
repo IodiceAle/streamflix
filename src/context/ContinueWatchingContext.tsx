@@ -49,7 +49,7 @@ export function ContinueWatchingProvider({ children }: { children: ReactNode }) 
 
             setContinueWatching(uniqueData)
         } catch (error) {
-            console.error('Error fetching continue watching:', error)
+            if (import.meta.env.DEV) console.error('Error fetching continue watching:', error)
         } finally {
             setLoading(false)
         }
@@ -126,7 +126,7 @@ export function ContinueWatchingProvider({ children }: { children: ReactNode }) 
                 if (error) throw error
             }
         } catch (error) {
-            console.error('Error updating progress:', error)
+            if (import.meta.env.DEV) console.error('Error updating progress:', error)
             // Refetch on error to sync state
             fetchContinueWatching()
         }
@@ -164,7 +164,7 @@ export function ContinueWatchingProvider({ children }: { children: ReactNode }) 
 
             if (error) throw error
         } catch (error) {
-            console.error('Error marking as watched:', error)
+            if (import.meta.env.DEV) console.error('Error marking as watched:', error)
             fetchContinueWatching()
         }
     }
@@ -186,7 +186,7 @@ export function ContinueWatchingProvider({ children }: { children: ReactNode }) 
 
             if (error) throw error
         } catch (error) {
-            console.error('Error clearing item:', error)
+            if (import.meta.env.DEV) console.error('Error clearing item:', error)
             fetchContinueWatching()
         }
     }

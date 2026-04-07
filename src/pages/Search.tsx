@@ -19,8 +19,13 @@ export default function Search() {
     const [isFocused, setIsFocused] = useState(false)
 
     useEffect(() => {
-        const saved = localStorage.getItem(RECENT_SEARCHES_KEY)
-        if (saved) setRecentSearches(JSON.parse(saved))
+        try {
+            const saved = localStorage.getItem(RECENT_SEARCHES_KEY)
+            if (saved) {
+                const parsed = JSON.parse(saved)
+                if (Array.isArray(parsed)) setRecentSearches(parsed)
+            }
+        } catch { /* ignore corrupt localStorage data */ }
     }, [])
 
     // Sync state when URL params change (e.g., from TopNav)
@@ -108,6 +113,7 @@ export default function Search() {
                             onBlur={() => setIsFocused(false)}
                             placeholder="Search movies & TV shows..."
                             className="w-full pl-14 pr-14 py-5 glass rounded-2xl text-white placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand text-lg font-medium"
+                            maxLength={200}
                             autoFocus
                         />
                         {query && (

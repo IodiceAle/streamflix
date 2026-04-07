@@ -103,7 +103,7 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
                 syncToLocalStorage(merged)
             }
         } catch (error) {
-            console.error('Error fetching settings:', error)
+            if (import.meta.env.DEV) console.error('Error fetching settings:', error)
         } finally {
             setLoading(false)
         }
@@ -150,7 +150,7 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
 
                 if (error) throw error
             } catch (error) {
-                console.error('Error saving settings:', error)
+                if (import.meta.env.DEV) console.error('Error saving settings:', error)
                 // Don't rollback — localStorage still has the value
             }
         }

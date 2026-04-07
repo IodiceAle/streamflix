@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, SkipForward, Check, Loader2, Flag } from 'lucide-react'
 import { getMovieEmbedUrl, getTVEmbedUrl } from '@/services/vidsrc'
@@ -21,6 +21,11 @@ export default function Watch() {
     const tmdbId = Number(id)
     const seasonNum = season ? Number(season) : undefined
     const episodeNum = episode ? Number(episode) : undefined
+
+    // Validate route parameters
+    if (!tmdbId || tmdbId <= 0 || !Number.isInteger(tmdbId) || (type !== 'movie' && type !== 'tv')) {
+        return <Navigate to="/" replace />
+    }
 
     // Fetch details for title/poster
     const { data: details } = useQuery<TMDBMovieDetails | TMDBTVDetails>({
@@ -165,6 +170,8 @@ export default function Watch() {
             <iframe
                 src={embedUrl}
                 className="w-full h-full border-0"
+                sandbox="allow-scripts allow-same-origin allow-fullscreen"
+                referrerPolicy="no-referrer"
                 allowFullScreen
                 allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
                 onLoad={() => setIframeLoaded(true)}

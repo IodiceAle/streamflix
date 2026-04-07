@@ -36,7 +36,7 @@ export function MyListProvider({ children }: { children: ReactNode }) {
             if (error) throw error
             setMyList(data || [])
         } catch (error) {
-            console.error('Error fetching my list:', error)
+            if (import.meta.env.DEV) console.error('Error fetching my list:', error)
         } finally {
             setLoading(false)
         }
@@ -74,7 +74,7 @@ export function MyListProvider({ children }: { children: ReactNode }) {
 
             if (error) throw error
         } catch (error) {
-            console.error('Error adding to list:', error)
+            if (import.meta.env.DEV) console.error('Error adding to list:', error)
             // Rollback on error
             setMyList((prev) => prev.filter((item) => item.id !== newItem.id))
         }
@@ -101,7 +101,7 @@ export function MyListProvider({ children }: { children: ReactNode }) {
 
             if (error) throw error
         } catch (error) {
-            console.error('Error removing from list:', error)
+            if (import.meta.env.DEV) console.error('Error removing from list:', error)
             // Rollback on error
             if (itemToRemove) {
                 setMyList((prev) => [...prev, itemToRemove])
