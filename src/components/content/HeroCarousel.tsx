@@ -95,7 +95,7 @@ export function HeroCarousel({
     const type = 'title' in currentItem ? 'movie' : 'tv'
     const releaseDate = 'release_date' in currentItem ? currentItem.release_date : currentItem.first_air_date
 
-    const handlePlay = () => navigate(type === 'movie' ? `/watch/movie/${currentItem.id}` : `/watch/tv/${currentItem.id}/1/1`)
+    const handlePlayClick = () => navigate(type === 'movie' ? `/watch/movie/${currentItem.id}` : `/watch/tv/${currentItem.id}/1/1`)
     const handleMoreInfo = () => navigate(`/detail/${type}/${currentItem.id}`)
 
     return (
@@ -124,7 +124,7 @@ export function HeroCarousel({
                     }}
                     className="absolute inset-0"
                 >
-                    <img
+                    <motion.img
                         src={getBackdropUrl(currentItem.backdrop_path, 'w1280')}
                         alt=""
                         className="w-full h-full object-cover object-center"
@@ -133,6 +133,9 @@ export function HeroCarousel({
                         width={1280}
                         height={720}
                         draggable="false"
+                        initial={{ scale: 1.05 }}
+                        animate={{ scale: 1.15 }}
+                        transition={{ duration: 15, ease: "linear" }}
                     />
                     {/* Image overlay for depth */}
                     <div className="absolute inset-0 bg-gradient-to-r from-surface via-transparent to-transparent opacity-90" />
@@ -200,10 +203,10 @@ export function HeroCarousel({
                         className="flex flex-wrap gap-3 sm:gap-4 mt-6 sm:mt-8 pointer-events-auto"
                     >
                         <button
-                            onClick={handlePlay}
-                            className="flex items-center gap-2 text-sm md:text-base px-6 sm:px-8 py-3 bg-white text-black rounded-full font-bold transition-all hover:bg-white/90 hover:scale-105 active:scale-95 shadow-[0_4px_14px_rgba(255,255,255,0.25)]"
+                            onClick={handlePlayClick}
+                            className="flex items-center gap-2 text-sm md:text-base px-6 sm:px-8 py-3 bg-white text-black rounded-full font-bold transition-all hover:bg-white/90 hover:scale-105 active:scale-95 shadow-[0_4px_24px_rgba(255,255,255,0.3)] group/play"
                         >
-                            <Play className="w-5 h-5 md:w-6 md:h-6 fill-black" />
+                            <Play className="w-5 h-5 md:w-6 md:h-6 fill-black transition-transform group-hover/play:scale-110" />
                             <span>Play</span>
                         </button>
                         <button

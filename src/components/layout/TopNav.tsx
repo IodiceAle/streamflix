@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, useScroll, useMotionValueEvent } from 'framer-motion'
 import { Search, Bell, User, ChevronDown, X, LogOut } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 
@@ -19,11 +19,18 @@ export function TopNav() {
     const [searchQuery, setSearchQuery] = useState('')
     const [showUserMenu, setShowUserMenu] = useState(false)
 
-    useEffect(() => {
-        const handleScroll = () => setScrolled(window.scrollY > 20)
-        window.addEventListener('scroll', handleScroll)
-        return () => window.removeEventListener('scroll', handleScroll)
-    }, [])
+    const { scrollY } = useScroll()
+    const [hidden, setHidden] = useState(false)
+
+    useMotionValueEvent(scrollY, "change", (latest) => {
+        const previous = scrollY.getPrevious()!
+        if (latest > 100 && latest > previous) {
+            setHidden(true)
+        } else {
+            setHidden(false)
+        }
+        setScrolled(latest > 20)
+    })
 
     // Hide on watch pages — AFTER all hooks
     if (location.pathname.startsWith('/watch')) return null
@@ -43,9 +50,15 @@ export function TopNav() {
     }
 
     return (
-        <header
-            className={`hidden md:block fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
-                    ? 'bg-surface/95 backdrop-blur-xl shadow-lg'
+        <motion.header
+            variants={{
+                visible: { y: 0 },
+                hidden: { y: "-100%" }
+            }}
+            animate={hidden ? "hidden" : "visible"}
+            transition={{ duration: 0.35, ease: "easeInOut" }}
+            className={`hidden md:block fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ${scrolled
+                    ? 'glass-premium shadow-xl'
                     : 'bg-gradient-to-b from-black/80 to-transparent'
                 }`}
         >
@@ -162,6 +175,6 @@ export function TopNav() {
                     </div>
                 </div>
             </div>
-        </header>
+        </motion.header>
     )
 }

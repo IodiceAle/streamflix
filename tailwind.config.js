@@ -81,9 +81,15 @@ export default {
             },
             boxShadow: {
                 'glow': '0 0 20px rgba(229, 9, 20, 0.3)',
-                'glow-lg': '0 0 40px rgba(229, 9, 20, 0.4)',
+                'glow-lg': '0 0 40px rgba(229, 9, 20, 0.5)',
+                'glow-brand': '0 0 25px var(--brand-dark)',
                 'card': '0 8px 32px rgba(0, 0, 0, 0.4)',
                 'card-hover': '0 16px 48px rgba(0, 0, 0, 0.6)',
+                'glass': '0 4px 24px rgba(0, 0, 0, 0.3)',
+            },
+            transitionTimingFunction: {
+                'spring': 'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                'smooth': 'cubic-bezier(0.16, 1, 0.3, 1)',
             },
             transitionDuration: {
                 '400': '400ms',

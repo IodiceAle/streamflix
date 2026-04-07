@@ -56,14 +56,14 @@ export function ContentCard({
 
     return (
         <motion.div
-            className="group/card relative cursor-pointer w-full h-full"
+            className="group/card relative cursor-pointer w-full h-full rounded-xl"
             onClick={handleClick}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => e.key === 'Enter' && handleClick()}
-            whileHover={{ scale: 1.05, y: -5 }}
+            whileHover={{ y: -8 }}
             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
         >
             {/* Glowing Shadow Background */}
@@ -85,8 +85,9 @@ export function ContentCard({
                     loading="lazy"
                     width={342}
                     height={513}
-                    className={`w-full h-full object-cover transition-all duration-700 ${imageLoaded ? 'opacity-100' : 'opacity-0'
-                        }`}
+                    className={`w-full h-full object-cover origin-center transition-all duration-700 ease-smooth ${
+                        imageLoaded ? 'opacity-100 blur-0 scale-100' : 'opacity-0 blur-md scale-105'
+                    } group-hover/card:scale-105`}
                     onLoad={() => setImageLoaded(true)}
                     onError={() => setImageLoaded(true)}
                 />
@@ -118,22 +119,22 @@ export function ContentCard({
                         {/* Play button */}
                         <button
                             onClick={handlePlayClick}
-                            className="w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full bg-white/90 md:bg-white flex items-center justify-center transition-transform duration-200 hover:scale-110 active:scale-95 shadow-xl"
+                            className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-full glass-premium flex items-center justify-center transition-all duration-300 hover:scale-110 hover:bg-brand group/play active:scale-95 shadow-glow"
                             aria-label={`Play ${title}`}
                         >
-                            <Play className="w-4 h-4 md:w-5 md:h-5 lg:w-6 lg:h-6 text-black fill-black ml-0.5" />
+                            <Play className="w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 text-white fill-white ml-1 transition-transform group-hover/play:scale-110" />
                         </button>
 
                         {/* Add to list */}
                         <button
                             onClick={handleListToggle}
-                            className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 backdrop-blur border border-white/20 flex items-center justify-center transition-all hover:bg-white/20 hover:scale-110"
+                            className="absolute top-2 right-2 w-9 h-9 rounded-full glass-dark flex items-center justify-center transition-all hover:bg-white/20 hover:scale-110 shadow-lg"
                             aria-label={inList ? 'Remove from My List' : 'Add to My List'}
                         >
                             {inList ? (
-                                <Check className="w-4 h-4 text-brand" />
+                                <Check className="w-5 h-5 text-brand" />
                             ) : (
-                                <Plus className="w-4 h-4 text-white" />
+                                <Plus className="w-5 h-5 text-white" />
                             )}
                         </button>
                     </div>

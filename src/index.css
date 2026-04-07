@@ -23,13 +23,13 @@
     --brand: #E50914;
     --brand-dark: #B20710;
     --brand-light: #FF1A1A;
-    --surface: #0a0a0a;
-    --surface-elevated: #141414;
-    --surface-card: #1a1a1a;
-    --surface-hover: #252525;
+    --surface: #09090b;
+    --surface-elevated: #111113;
+    --surface-card: #16171a;
+    --surface-hover: #212226;
     --text-primary: #ffffff;
-    --text-secondary: #B3B3B3;
-    --text-muted: #6B6B6B;
+    --text-secondary: #a1a1aa;
+    --text-muted: #71717a;
 }
 
 /* Base Styles */
@@ -114,6 +114,11 @@
 
     .glass-dark {
         @apply bg-black/40 backdrop-blur-xl border border-white/5;
+    }
+
+    .glass-premium {
+        @apply backdrop-blur-2xl border-t border-white/10 border-x border-white/5 shadow-2xl shadow-black/50 transition-all duration-300;
+        background-color: rgba(9, 9, 11, 0.7);
     }
 
     .gradient-text {

@@ -86,7 +86,7 @@ export function ContentRow({
                 {/* Items */}
                 <div
                     ref={scrollRef}
-                    className="flex gap-2 md:gap-3 px-4 md:px-8 overflow-x-auto hide-scrollbar scroll-smooth pb-2"
+                    className="flex gap-3 md:gap-4 lg:gap-5 px-4 md:px-8 py-4 overflow-x-auto hide-scrollbar scroll-smooth"
                     style={{ scrollSnapType: 'x mandatory' }}
                 >
                     {items.map((item, index) => {
