@@ -170,10 +170,9 @@ export default function Watch() {
             <iframe
                 src={embedUrl}
                 className="w-full h-full border-0"
-                sandbox="allow-scripts allow-same-origin allow-fullscreen"
-                referrerPolicy="no-referrer"
+                referrerPolicy="origin"
                 allowFullScreen
-                allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
                 onLoad={() => setIframeLoaded(true)}
             />
         </div>

@@ -330,10 +330,10 @@ export default function Detail() {
                         <iframe
                             src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1`}
                             className="w-full h-full rounded"
-                            sandbox="allow-scripts allow-same-origin allow-fullscreen allow-popups"
-                            referrerPolicy="no-referrer"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
+                            referrerPolicy="origin"
                             allowFullScreen
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
                         />
                     </div>
                 )}
