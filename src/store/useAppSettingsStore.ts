@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { supabase } from '@/services/supabase'
-import { useAuthStore } from '../store/useAuthStore'
+import { useAuthStore } from './useAuthStore'
 
 export interface AppSettings {
     theme: 'dark'

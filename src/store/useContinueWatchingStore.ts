@@ -1,69 +1,59 @@
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react'
+import { create } from 'zustand'
 import { supabase } from '@/services/supabase'
-import { useAuth } from './AuthContext'
+import { useAuthStore } from './useAuthStore'
 import type { WatchProgress } from '@/types'
 
-interface ContinueWatchingContextType {
+interface ContinueWatchingState {
     continueWatching: WatchProgress[]
     loading: boolean
+    fetchContinueWatching: () => Promise<void>
     updateProgress: (data: Omit<WatchProgress, 'id' | 'user_id' | 'last_watched_at'>) => Promise<void>
     markAsWatched: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => Promise<void>
     clearItem: (tmdbId: number, mediaType: 'movie' | 'tv') => Promise<void>
     getProgress: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => WatchProgress | undefined
+    clear: () => void
 }
 
-const ContinueWatchingContext = createContext<ContinueWatchingContextType | undefined>(undefined)
+export const useContinueWatchingStore = create<ContinueWatchingState>()((set, get) => ({
+    continueWatching: [],
+    loading: true,
 
-export function ContinueWatchingProvider({ children }: { children: ReactNode }) {
-    const { user } = useAuth()
-    const [continueWatching, setContinueWatching] = useState<WatchProgress[]>([])
-    const [loading, setLoading] = useState(true)
-
-    // Fetch watch history
-    const fetchContinueWatching = useCallback(async () => {
-        if (!user) {
-            setContinueWatching([])
-            setLoading(false)
+    fetchContinueWatching: async () => {
+        const userId = useAuthStore.getState().user?.id
+        if (!userId) {
+            set({ continueWatching: [], loading: false })
             return
         }
-
         try {
             const { data, error } = await supabase
                 .from('continue_watching')
                 .select('*')
-                .eq('user_id', user.id)
+                .eq('user_id', userId)
                 .order('last_watched_at', { ascending: false })
-
             if (error) throw error
 
-            // Deduplicate items locally in case the db has duplicates due to the postgres null constraint behavior
-            const uniqueData = []
-            const seen = new Set()
-            for (const item of (data || [])) {
+            // Deduplicate — Postgres NULL uniqueness can create duplicates
+            const seen = new Set<string>()
+            const unique = (data || []).filter((item) => {
                 const key = `${item.tmdb_id}-${item.type}-${item.season ?? 'null'}-${item.episode ?? 'null'}`
-                if (!seen.has(key)) {
-                    seen.add(key)
-                    uniqueData.push(item)
-                }
-            }
-
-            setContinueWatching(uniqueData)
+                if (seen.has(key)) return false
+                seen.add(key)
+                return true
+            })
+            set({ continueWatching: unique })
         } catch (error) {
             if (import.meta.env.DEV) console.error('Error fetching continue watching:', error)
         } finally {
-            setLoading(false)
+            set({ loading: false })
         }
-    }, [user])
+    },
 
-    useEffect(() => {
-        fetchContinueWatching()
-    }, [fetchContinueWatching])
-
-    const updateProgress = async (data: Omit<WatchProgress, 'id' | 'user_id' | 'last_watched_at'>) => {
-        if (!user) return
+    updateProgress: async (data) => {
+        const userId = useAuthStore.getState().user?.id
+        if (!userId) return
 
         const progressData: Omit<WatchProgress, 'id'> = {
-            user_id: user.id,
+            user_id: userId,
             tmdb_id: data.tmdb_id,
             type: data.type,
             season: data.season ?? undefined,
@@ -79,26 +69,23 @@ export function ContinueWatchingProvider({ children }: { children: ReactNode }) 
 
         let existingId: string | undefined
 
-        // Optimistic update
-        setContinueWatching((prev) => {
-            const existingIndex = prev.findIndex(
+        // Optimistic update — move updated item to front
+        set((s) => {
+            const idx = s.continueWatching.findIndex(
                 (item) =>
                     item.tmdb_id === data.tmdb_id &&
                     item.type === data.type &&
                     (item.season ?? null) === (data.season ?? null) &&
                     (item.episode ?? null) === (data.episode ?? null)
             )
-
-            if (existingIndex >= 0) {
-                existingId = prev[existingIndex].id
-                const updated = [...prev]
-                updated[existingIndex] = { ...updated[existingIndex], ...progressData }
-                // Move to front if not already
-                const [item] = updated.splice(existingIndex, 1)
-                return [item, ...updated]
+            if (idx >= 0) {
+                existingId = s.continueWatching[idx].id
+                const updated = [...s.continueWatching]
+                updated[idx] = { ...updated[idx], ...progressData }
+                const [item] = updated.splice(idx, 1)
+                return { continueWatching: [item, ...updated] }
             }
-
-            return [{ id: crypto.randomUUID(), ...progressData }, ...prev]
+            return { continueWatching: [{ id: crypto.randomUUID(), ...progressData }, ...s.continueWatching] }
         })
 
         const dbPayload = {
@@ -108,36 +95,31 @@ export function ContinueWatchingProvider({ children }: { children: ReactNode }) 
         }
 
         try {
-            // Because Postgres unique constraints treat NULL as distinct, upserting rows with NULL season/episode
-            // creates duplicates. By explicitly checking if we have an existing ID and using update/insert,
-            // we bypass the need for a strict unique constraint.
-            if (existingId && existingId.length > 30) { // check > 30 to make sure it's a real UUID, not a temp if we were to generate weird ones
+            if (existingId && existingId.length > 30) {
                 const { error } = await supabase
                     .from('continue_watching')
                     .update(dbPayload)
                     .eq('id', existingId)
-                
                 if (error) throw error
             } else {
                 const { error } = await supabase
                     .from('continue_watching')
                     .insert(dbPayload)
-                
                 if (error) throw error
             }
         } catch (error) {
             if (import.meta.env.DEV) console.error('Error updating progress:', error)
-            // Refetch on error to sync state
-            fetchContinueWatching()
+            get().fetchContinueWatching()
         }
-    }
+    },
 
-    const markAsWatched = async (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => {
-        if (!user) return
+    markAsWatched: async (tmdbId, mediaType, season, episode) => {
+        const userId = useAuthStore.getState().user?.id
+        if (!userId) return
 
-        // Optimistic update - mark as completed
-        setContinueWatching((prev) =>
-            prev.map((item) => {
+        // Optimistic update
+        set((s) => ({
+            continueWatching: s.continueWatching.map((item) => {
                 if (
                     item.tmdb_id === tmdbId &&
                     item.type === mediaType &&
@@ -146,14 +128,14 @@ export function ContinueWatchingProvider({ children }: { children: ReactNode }) 
                     return { ...item, completed: true, progress_seconds: item.duration_seconds || 0 }
                 }
                 return item
-            })
-        )
+            }),
+        }))
 
         try {
             let query = supabase
                 .from('continue_watching')
                 .update({ completed: true, last_watched_at: new Date().toISOString() })
-                .eq('user_id', user.id)
+                .eq('user_id', userId)
                 .eq('tmdb_id', tmdbId)
                 .eq('type', mediaType)
 
@@ -161,63 +143,59 @@ export function ContinueWatchingProvider({ children }: { children: ReactNode }) 
             if (episode !== undefined) query = query.eq('episode', episode)
 
             const { error } = await query
-
             if (error) throw error
         } catch (error) {
             if (import.meta.env.DEV) console.error('Error marking as watched:', error)
-            fetchContinueWatching()
+            get().fetchContinueWatching()
         }
-    }
+    },
 
-    const clearItem = async (tmdbId: number, mediaType: 'movie' | 'tv') => {
-        if (!user) return
+    clearItem: async (tmdbId, mediaType) => {
+        const userId = useAuthStore.getState().user?.id
+        if (!userId) return
 
-        setContinueWatching((prev) =>
-            prev.filter((item) => !(item.tmdb_id === tmdbId && item.type === mediaType))
-        )
+        set((s) => ({
+            continueWatching: s.continueWatching.filter(
+                (item) => !(item.tmdb_id === tmdbId && item.type === mediaType)
+            ),
+        }))
 
         try {
             const { error } = await supabase
                 .from('continue_watching')
                 .delete()
-                .eq('user_id', user.id)
+                .eq('user_id', userId)
                 .eq('tmdb_id', tmdbId)
                 .eq('type', mediaType)
-
             if (error) throw error
         } catch (error) {
             if (import.meta.env.DEV) console.error('Error clearing item:', error)
-            fetchContinueWatching()
+            get().fetchContinueWatching()
         }
-    }
+    },
 
-    const getProgress = (
-        tmdbId: number,
-        mediaType: 'movie' | 'tv',
-        season?: number,
-        episode?: number
-    ) => {
-        return continueWatching.find(
+    getProgress: (tmdbId, mediaType, season, episode) =>
+        get().continueWatching.find(
             (item) =>
                 item.tmdb_id === tmdbId &&
                 item.type === mediaType &&
                 (mediaType === 'movie' || (item.season === season && item.episode === episode))
-        )
-    }
+        ),
 
-    return (
-        <ContinueWatchingContext.Provider
-            value={{ continueWatching, loading, updateProgress, markAsWatched, clearItem, getProgress }}
-        >
-            {children}
-        </ContinueWatchingContext.Provider>
-    )
-}
+    clear: () => set({ continueWatching: [], loading: false }),
+}))
 
-export function useContinueWatching() {
-    const context = useContext(ContinueWatchingContext)
-    if (context === undefined) {
-        throw new Error('useContinueWatching must be used within a ContinueWatchingProvider')
+// React to auth changes
+useAuthStore.subscribe(
+    (state) => state.user?.id,
+    (userId) => {
+        if (userId) {
+            useContinueWatchingStore.getState().fetchContinueWatching()
+        } else {
+            useContinueWatchingStore.getState().clear()
+        }
     }
-    return context
-}
+)
+
+// Drop-in replacement for the old context hook — no component changes needed.
+export const useContinueWatching = useContinueWatchingStore

@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
 
@@ -7,6 +8,7 @@ import path from 'path'
 export default defineConfig({
     plugins: [
         react(),
+        tailwindcss(),
         VitePWA({
             registerType: 'autoUpdate',
             includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
@@ -48,7 +50,7 @@ export default defineConfig({
                             cacheName: 'google-fonts-stylesheets',
                             expiration: {
                                 maxEntries: 10,
-                                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+                                maxAgeSeconds: 60 * 60 * 24 * 365
                             }
                         }
                     },
@@ -59,7 +61,7 @@ export default defineConfig({
                             cacheName: 'google-fonts-webfonts',
                             expiration: {
                                 maxEntries: 30,
-                                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+                                maxAgeSeconds: 60 * 60 * 24 * 365
                             },
                             cacheableResponse: {
                                 statuses: [200]
@@ -73,7 +75,7 @@ export default defineConfig({
                             cacheName: 'tmdb-api-cache',
                             expiration: {
                                 maxEntries: 100,
-                                maxAgeSeconds: 60 * 60 * 24 // 24 hours
+                                maxAgeSeconds: 60 * 60 * 24
                             },
                             cacheableResponse: {
                                 statuses: [200]
@@ -87,7 +89,7 @@ export default defineConfig({
                             cacheName: 'tmdb-image-cache',
                             expiration: {
                                 maxEntries: 500,
-                                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+                                maxAgeSeconds: 60 * 60 * 24 * 30
                             },
                             cacheableResponse: {
                                 statuses: [200]

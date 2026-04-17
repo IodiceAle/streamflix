@@ -1,10 +1,14 @@
 /* Google Fonts loaded via <link> in index.html — no @import needed */
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-/* Light Theme Root Variables */
+/* Class-based dark mode — .dark on <html> triggers dark: variants */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============================================
+   Runtime Theme Variables
+   These are swapped at paint-time for dark/light.
+   ============================================ */
 :root {
     --brand: #E50914;
     --brand-dark: #B20710;
@@ -18,7 +22,6 @@
     --text-muted: #808080;
 }
 
-/* Dark Theme Variables */
 :root.dark {
     --brand: #E50914;
     --brand-dark: #B20710;
@@ -32,7 +35,171 @@
     --text-muted: #71717a;
 }
 
-/* Base Styles */
+/* ============================================
+   Tailwind v4 Theme — static design tokens.
+   Replaces tailwind.config.js theme.extend.
+   ============================================ */
+@theme {
+    /* Typography */
+    --font-sans: 'Outfit', system-ui, -apple-system, sans-serif;
+    --text-2xs: 0.625rem;
+
+    /* Custom spacing */
+    --spacing-18: 4.5rem;
+    --spacing-88: 22rem;
+    --spacing-112: 28rem;
+    --spacing-128: 32rem;
+
+    /* Border radius */
+    --radius-4xl: 2rem;
+    --radius-5xl: 2.5rem;
+
+    /* Shadows */
+    --shadow-glow: 0 0 20px rgba(229, 9, 20, 0.3);
+    --shadow-glow-lg: 0 0 40px rgba(229, 9, 20, 0.5);
+    --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --shadow-card-hover: 0 16px 48px rgba(0, 0, 0, 0.6);
+    --shadow-glass: 0 4px 24px rgba(0, 0, 0, 0.3);
+
+    /* Transition easing */
+    --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+
+    /* Transition duration */
+    --duration-400: 400ms;
+
+    /* Aspect ratios */
+    --aspect-poster: 2 / 3;
+    --aspect-backdrop: 16 / 9;
+    --aspect-square: 1 / 1;
+
+    /* Blur */
+    --blur-xs: 2px;
+
+    /* Breakpoints */
+    --breakpoint-xs: 475px;
+    --breakpoint-3xl: 1920px;
+}
+
+/* ============================================
+   Dynamic color tokens — resolved at paint time
+   via CSS var() so dark/light switching works.
+   @theme inline: generated utilities emit var()
+   references instead of resolved values.
+   ============================================ */
+@theme inline {
+    --color-brand: var(--brand);
+    --color-brand-dark: var(--brand-dark);
+    --color-brand-light: var(--brand-light);
+    --color-surface: var(--surface);
+    --color-surface-elevated: var(--surface-elevated);
+    --color-surface-card: var(--surface-card);
+    --color-surface-hover: var(--surface-hover);
+    --color-text-primary: var(--text-primary);
+    --color-text-secondary: var(--text-secondary);
+    --color-text-muted: var(--text-muted);
+    /* Shadow referencing a runtime var */
+    --shadow-glow-brand: 0 0 25px var(--brand-dark);
+}
+
+/* ============================================
+   Keyframes
+   Defined at root scope so @theme animations
+   and custom @layer utilities can both reference them.
+   ============================================ */
+@keyframes skeleton-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(100%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* ============================================
+   Base Styles
+   ============================================ */
 @layer base {
     * {
         -webkit-tap-highlight-color: transparent;
@@ -52,7 +219,6 @@
         transition: background-color 0.3s ease, color 0.3s ease;
     }
 
-    /* Webkit scrollbar */
     ::-webkit-scrollbar {
         width: 8px;
         height: 8px;
@@ -70,7 +236,6 @@
         @apply bg-white/30;
     }
 
-    /* Firefox scrollbar */
     html {
         scrollbar-width: thin;
         scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
@@ -82,6 +247,9 @@
     }
 }
 
+/* ============================================
+   Component Classes
+   ============================================ */
 @layer components {
     .hide-scrollbar {
         -ms-overflow-style: none;
@@ -96,16 +264,6 @@
         @apply relative overflow-hidden bg-gradient-to-r from-surface-card via-surface-hover to-surface-card;
         background-size: 200% 100%;
         animation: skeleton-shimmer 1.5s ease-in-out infinite;
-    }
-
-    @keyframes skeleton-shimmer {
-        0% {
-            background-position: 200% 0;
-        }
-
-        100% {
-            background-position: -200% 0;
-        }
     }
 
     .glass {
@@ -176,7 +334,6 @@
         text-shadow: 0 4px 16px rgba(0, 0, 0, 0.8);
     }
 
-    /* Page transition */
     .page-enter {
         opacity: 0;
         transform: translateY(8px);
@@ -189,7 +346,12 @@
     }
 }
 
+/* ============================================
+   Utility Classes
+   ============================================ */
 @layer utilities {
+
+    /* Animation utilities use `forwards` fill mode which @theme --animate-* can't express */
     .animate-fade-in {
         animation: fadeIn 0.3s ease-out forwards;
     }
@@ -206,76 +368,6 @@
         animation: pulse 3s ease-in-out infinite;
     }
 
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
-
-        to {
-            opacity: 1;
-        }
-    }
-
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @keyframes scaleIn {
-        from {
-            opacity: 0;
-            transform: scale(0.95);
-        }
-
-        to {
-            opacity: 1;
-            transform: scale(1);
-        }
-    }
-
-    @keyframes pulse {
-
-        0%,
-        100% {
-            opacity: 1;
-        }
-
-        50% {
-            opacity: 0.7;
-        }
-    }
-
-    @keyframes slideInRight {
-        from {
-            opacity: 0;
-            transform: translateX(100%);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateX(0);
-        }
-    }
-
-    @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(100%);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
     .animate-slide-in-right {
         animation: slideInRight 0.3s ease-out forwards;
     }
@@ -285,8 +377,11 @@
     }
 }
 
-/* Accessibility: respect reduced motion preference */
+/* ============================================
+   Accessibility: respect reduced motion
+   ============================================ */
 @media (prefers-reduced-motion: reduce) {
+
     *,
     *::before,
     *::after {
