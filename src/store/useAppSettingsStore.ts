@@ -63,7 +63,8 @@ export const useAppSettingsStore = create<AppSettingsState>()(
                     if (error) {
                         if (error.code === 'PGRST116') {
                             // No profile yet — create one from current settings
-                            const { email: _email, ...settingsWithoutEmail } = get().settings
+                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                            const { email: _, ...settingsWithoutEmail } = get().settings
                             await supabase.from('profiles').insert({
                                 id: user.id,
                                 ...settingsWithoutEmail,

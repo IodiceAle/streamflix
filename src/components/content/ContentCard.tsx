@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Play, Plus, Check, Star } from 'lucide-react'
 import { getImageUrl } from '@/services/tmdb'
-import { useMyList } from '@/context/MyListContext'
+import { useMyList } from '@/store/useMyListStore'
 
 interface ContentCardProps {
     id: number
@@ -67,7 +67,7 @@ export function ContentCard({
             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
         >
             {/* Glowing Shadow Background */}
-            <motion.div 
+            <motion.div
                 className="absolute -inset-2 bg-brand/40 rounded-xl blur-xl z-0"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: isHovered ? 0.6 : 0 }}
@@ -85,9 +85,8 @@ export function ContentCard({
                     loading="lazy"
                     width={342}
                     height={513}
-                    className={`w-full h-full object-cover origin-center transition-all duration-700 ease-smooth ${
-                        imageLoaded ? 'opacity-100 blur-0 scale-100' : 'opacity-0 blur-md scale-105'
-                    } group-hover/card:scale-105`}
+                    className={`w-full h-full object-cover origin-center transition-all duration-700 ease-smooth ${imageLoaded ? 'opacity-100 blur-0 scale-100' : 'opacity-0 blur-md scale-105'
+                        } group-hover/card:scale-105`}
                     onLoad={() => setImageLoaded(true)}
                     onError={() => setImageLoaded(true)}
                 />

@@ -9,7 +9,7 @@ import {
     getBackdropUrl,
     getStillUrl,
 } from '@/services/tmdb'
-import { useMyList } from '@/context/MyListContext'
+import { useMyList } from '@/store/useMyListStore'
 import { ContentRow } from '@/components/content/ContentRow'
 import { Modal } from '@/components/ui/Modal'
 import { DetailSkeleton } from '@/components/ui/Skeleton'
@@ -26,12 +26,10 @@ export default function Detail() {
     const isMovie = type === 'movie'
     const numericId = Number(id)
 
-    // Validate route parameters
-    if (!numericId || numericId <= 0 || !Number.isInteger(numericId) || (type !== 'movie' && type !== 'tv')) {
-        return <Navigate to="/" replace />
-    }
+    // Validate route parameters — computed but NOT returned yet (hooks must come first)
+    const isInvalidRoute = !numericId || numericId <= 0 || !Number.isInteger(numericId) || (type !== 'movie' && type !== 'tv')
 
-    const inList = isInList(numericId, type!)
+    const inList = !isInvalidRoute && type ? isInList(numericId, type) : false
 
     // Fetch details
     const { data: details, isLoading } = useQuery({
@@ -43,15 +41,20 @@ export default function Detail() {
                 return getTVDetails(Number(id))
             }
         },
-        enabled: !!type && !!id,
+        enabled: !isInvalidRoute && !!type && !!id,
     })
 
     // Fetch season episodes (TV only)
     const { data: seasonDetails } = useQuery({
         queryKey: ['season', id, selectedSeason],
         queryFn: () => getSeasonDetails(Number(id), selectedSeason),
-        enabled: !isMovie && !!id,
+        enabled: !isInvalidRoute && !isMovie && !!id,
     })
+
+    // Now that all hooks have been called, we can do the early returns
+    if (isInvalidRoute) {
+        return <Navigate to="/" replace />
+    }
 
     if (isLoading || !details) {
         return <DetailSkeleton />

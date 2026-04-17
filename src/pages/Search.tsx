@@ -3,6 +3,7 @@ import { Search as SearchIcon, X, Clock, Loader2, Sparkles } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
 import { multiSearch, getTrending } from '@/services/tmdb'
+import type { TMDBMovie, TMDBTVShow } from '@/types'
 import { ContentCard } from '@/components/content/ContentCard'
 import { Skeleton } from '@/components/ui/Skeleton'
 
@@ -35,6 +36,7 @@ export default function Search() {
             setQuery(q)
             setDebouncedQuery(q)
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams])
 
     // Update debounced value and sync URL when typing
@@ -42,7 +44,7 @@ export default function Search() {
         const timer = setTimeout(() => {
             const trimmed = query.trim()
             setDebouncedQuery(trimmed)
-            
+
             // Only update URL if it differs to avoid infinite loops
             if (trimmed !== (searchParams.get('q') || '')) {
                 if (trimmed) {
@@ -89,8 +91,8 @@ export default function Search() {
 
     const results = useMemo(() => {
         if (!searchResults?.results) return { movies: [], tv: [] }
-        const movies = searchResults.results.filter((r: any) => r.media_type === 'movie')
-        const tv = searchResults.results.filter((r: any) => r.media_type === 'tv')
+        const movies = searchResults.results.filter((r): r is TMDBMovie & { media_type: 'movie' } => r.media_type === 'movie')
+        const tv = searchResults.results.filter((r): r is TMDBTVShow & { media_type: 'tv' } => r.media_type === 'tv')
         return { movies, tv }
     }, [searchResults])
 
@@ -151,7 +153,7 @@ export default function Search() {
                                         </span>
                                     </h2>
                                     <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
-                                        {results.movies.slice(0, 12).map((item: any) => (
+                                        {results.movies.slice(0, 12).map((item) => (
                                             <div key={item.id} onClick={handleResultClick}>
                                                 <ContentCard
                                                     id={item.id}
@@ -174,7 +176,7 @@ export default function Search() {
                                         </span>
                                     </h2>
                                     <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
-                                        {results.tv.slice(0, 12).map((item: any) => (
+                                        {results.tv.slice(0, 12).map((item) => (
                                             <div key={item.id} onClick={handleResultClick}>
                                                 <ContentCard
                                                     id={item.id}
@@ -237,14 +239,14 @@ export default function Search() {
                             Trending This Week
                         </h2>
                         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
-                            {trending?.results?.slice(0, 12).map((item: any, index: number) => {
+                            {trending?.results?.slice(0, 12).map((item, index) => {
                                 const isMovie = 'title' in item
                                 return (
                                     <div key={item.id} className="animate-fade-in-up" style={{ animationDelay: `${index * 50}ms` }}>
                                         <ContentCard
                                             id={item.id}
                                             type={isMovie ? 'movie' : 'tv'}
-                                            title={isMovie ? item.title : item.name}
+                                            title={isMovie ? (item as TMDBMovie).title : (item as TMDBTVShow).name}
                                             posterPath={item.poster_path}
                                             rating={item.vote_average}
                                         />

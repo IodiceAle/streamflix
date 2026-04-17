@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Mail, Lock, Eye, EyeOff, Loader2, Play } from 'lucide-react'
-import { useAuth } from '@/context/AuthContext'
+import { useAuth } from '@/store/useAuthStore'
 
 const MAX_ATTEMPTS = 5
 const LOCKOUT_MS = 30_000

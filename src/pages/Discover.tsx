@@ -49,7 +49,11 @@ export default function Discover() {
 
     // Get filter state from URL
     const contentType = (searchParams.get('type') as ContentType) || 'all'
-    const selectedGenres = searchParams.get('genres')?.split(',').filter(Boolean) || []
+    const selectedGenresParam = searchParams.get('genres')
+    const selectedGenres = useMemo(
+        () => selectedGenresParam?.split(',').filter(Boolean) || [],
+        [selectedGenresParam]
+    )
     const sortBy = (searchParams.get('sort') as SortOption) || 'popularity.desc'
     const yearFrom = searchParams.get('yearFrom') || ''
     const yearTo = searchParams.get('yearTo') || ''

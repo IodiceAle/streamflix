@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, SkipForward, Check, Loader2, Flag } from 'lucide-react'
 import { getMovieEmbedUrl, getTVEmbedUrl } from '@/services/vidsrc'
 import { getMovieDetails, getTVDetails, getSeasonDetails } from '@/services/tmdb'
-import { useContinueWatching } from '@/context/ContinueWatchingContext'
+import { useContinueWatching } from '@/store/useContinueWatchingStore'
 import { useToast } from '@/components/ui/Toast'
 import type { TMDBMovieDetails, TMDBTVDetails } from '@/types'
 
@@ -22,23 +22,21 @@ export default function Watch() {
     const seasonNum = season ? Number(season) : undefined
     const episodeNum = episode ? Number(episode) : undefined
 
-    // Validate route parameters
-    if (!tmdbId || tmdbId <= 0 || !Number.isInteger(tmdbId) || (type !== 'movie' && type !== 'tv')) {
-        return <Navigate to="/" replace />
-    }
+    // Validate route parameters — computed but NOT returned yet (hooks must come first)
+    const isInvalidRoute = !tmdbId || tmdbId <= 0 || !Number.isInteger(tmdbId) || (type !== 'movie' && type !== 'tv')
 
     // Fetch details for title/poster
     const { data: details } = useQuery<TMDBMovieDetails | TMDBTVDetails>({
         queryKey: ['details', type, id],
         queryFn: () => isMovie ? getMovieDetails(tmdbId) : getTVDetails(tmdbId),
-        enabled: !!id,
+        enabled: !isInvalidRoute && !!id,
     })
 
     // Fetch season details for next episode logic
     const { data: seasonDetails } = useQuery({
         queryKey: ['season', id, seasonNum],
         queryFn: () => getSeasonDetails(tmdbId, seasonNum!),
-        enabled: !isMovie && !!seasonNum,
+        enabled: !isInvalidRoute && !isMovie && !!seasonNum,
     })
 
     const title = details ? ('title' in details ? details.title : details.name) : ''
@@ -70,18 +68,25 @@ export default function Watch() {
             poster_path: details.poster_path || undefined,
             backdrop_path: details.backdrop_path || undefined,
         })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [details, tmdbId])
 
     // Determine next episode
-    const hasNextEpisode = !isMovie && seasonDetails?.episodes && episodeNum
-        ? episodeNum < seasonDetails.episodes.length
-        : false
+    const hasNextEpisode = useMemo(() => {
+        if (isMovie || !seasonDetails?.episodes || !episodeNum) return false
+        return episodeNum < seasonDetails.episodes.length
+    }, [isMovie, seasonDetails?.episodes, episodeNum])
 
     const handleNextEpisode = useCallback(() => {
         if (hasNextEpisode && seasonNum && episodeNum) {
             navigate(`/watch/tv/${id}/${seasonNum}/${episodeNum + 1}`)
         }
     }, [hasNextEpisode, id, seasonNum, episodeNum, navigate])
+
+    // Now that all hooks have been called, we can do the early return
+    if (isInvalidRoute) {
+        return <Navigate to="/" replace />
+    }
 
     const handleMarkAsWatched = async () => {
         await markAsWatched(tmdbId, isMovie ? 'movie' : 'tv', seasonNum, episodeNum)

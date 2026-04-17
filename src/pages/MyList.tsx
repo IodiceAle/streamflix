@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Bookmark, ChevronDown } from 'lucide-react'
-import { useMyList } from '@/context/MyListContext'
+import { useMyList } from '@/store/useMyListStore'
 import { ContentCard } from '@/components/content/ContentCard'
 import { Skeleton } from '@/components/ui/Skeleton'
 

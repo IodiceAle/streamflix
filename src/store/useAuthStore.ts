@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { subscribeWithSelector } from 'zustand/middleware'
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/services/supabase'
 
@@ -10,10 +11,10 @@ interface AuthState {
     signOut: () => Promise<void>
 }
 
-export const useAuthStore = create<AuthState>()((set) => ({
+export const useAuthStore = create<AuthState>()(subscribeWithSelector((_set) => ({
     user: null,
     session: null,
-    loading: true,
+    loading: false,
 
     signIn: async (email, password) => {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
@@ -23,7 +24,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
     signOut: async () => {
         await supabase.auth.signOut()
     },
-}))
+})))
 
 // Bootstrap: resolve the current session immediately, then track all future changes.
 // Both run at module-load time so the store is populated before any component renders.

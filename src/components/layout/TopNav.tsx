@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion'
 import { Search, Bell, User, ChevronDown, X, LogOut } from 'lucide-react'
-import { useAuth } from '@/context/AuthContext'
+import { useAuth } from '@/store/useAuthStore'
 
 const navLinks = [
     { path: '/', label: 'Home' },
@@ -58,8 +58,8 @@ export function TopNav() {
             animate={hidden ? "hidden" : "visible"}
             transition={{ duration: 0.35, ease: "easeInOut" }}
             className={`hidden md:block fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ${scrolled
-                    ? 'glass-premium shadow-xl'
-                    : 'bg-gradient-to-b from-black/80 to-transparent'
+                ? 'glass-premium shadow-xl'
+                : 'bg-gradient-to-b from-black/80 to-transparent'
                 }`}
         >
             <div className="max-w-[1800px] mx-auto flex items-center h-16 px-6 lg:px-12">
@@ -77,8 +77,8 @@ export function TopNav() {
                                 key={path}
                                 to={path}
                                 className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 z-10 ${isActive
-                                        ? 'text-white'
-                                        : 'text-white/60 hover:text-white hover:bg-white/5'
+                                    ? 'text-white'
+                                    : 'text-white/60 hover:text-white hover:bg-white/5'
                                     }`}
                             >
                                 {isActive && (

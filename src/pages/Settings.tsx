@@ -1,6 +1,6 @@
 import { Play, Bell, Info, ChevronRight, LogOut, User, Palette, Volume2, Check, Globe, Subtitles } from 'lucide-react'
-import { useAuth } from '@/context/AuthContext'
-import { useAppSettings } from '@/context/AppSettingsContext'
+import { useAuth } from '@/store/useAuthStore'
+import { useAppSettings } from '@/store/useAppSettingsStore'
 import { Modal } from '@/components/ui/Modal'
 
 type Quality = 'auto' | '1080p' | '720p' | '480p'
@@ -139,7 +139,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     )
 }
 
-function SettingItem({ icon: Icon, iconBg, iconColor, label, description }: { icon: any; iconBg: string; iconColor: string; label: string; description: string }) {
+function SettingItem({ icon: Icon, iconBg, iconColor, label, description }: { icon: React.ComponentType<{ className?: string }>; iconBg: string; iconColor: string; label: string; description: string }) {
     return (
         <div className="flex items-center gap-4 px-4 py-4">
             <div className={`w-11 h-11 rounded-xl ${iconBg} flex items-center justify-center`}><Icon className={`w-5 h-5 ${iconColor}`} /></div>
@@ -148,7 +148,7 @@ function SettingItem({ icon: Icon, iconBg, iconColor, label, description }: { ic
     )
 }
 
-function SettingButton({ icon: Icon, iconBg, iconColor, label, description, onClick, border }: { icon: any; iconBg: string; iconColor: string; label: string; description: string; onClick: () => void; border?: boolean }) {
+function SettingButton({ icon: Icon, iconBg, iconColor, label, description, onClick, border }: { icon: React.ComponentType<{ className?: string }>; iconBg: string; iconColor: string; label: string; description: string; onClick: () => void; border?: boolean }) {
     return (
         <button onClick={onClick} className={`w-full flex items-center gap-4 px-4 py-4 hover:bg-white/5 transition-colors ${border ? 'border-t border-white/5' : ''}`}>
             <div className={`w-11 h-11 rounded-xl ${iconBg} flex items-center justify-center`}><Icon className={`w-5 h-5 ${iconColor}`} /></div>
@@ -158,7 +158,7 @@ function SettingButton({ icon: Icon, iconBg, iconColor, label, description, onCl
     )
 }
 
-function SettingToggle({ icon: Icon, iconBg, iconColor, label, description, value, onChange, border }: { icon: any; iconBg: string; iconColor: string; label: string; description: string; value: boolean; onChange: (v: boolean) => void; border?: boolean }) {
+function SettingToggle({ icon: Icon, iconBg, iconColor, label, description, value, onChange, border }: { icon: React.ComponentType<{ className?: string }>; iconBg: string; iconColor: string; label: string; description: string; value: boolean; onChange: (v: boolean) => void; border?: boolean }) {
     return (
         <button onClick={() => onChange(!value)} className={`w-full flex items-center gap-4 px-4 py-4 hover:bg-white/5 transition-colors ${border ? 'border-t border-white/5' : ''}`}>
             <div className={`w-11 h-11 rounded-xl ${iconBg} flex items-center justify-center`}><Icon className={`w-5 h-5 ${iconColor}`} /></div>

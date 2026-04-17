@@ -45,8 +45,8 @@ const containerVariants = {
 
 const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
-    show: { 
-        opacity: 1, 
+    show: {
+        opacity: 1,
         y: 0,
         transition: { type: 'spring', stiffness: 300, damping: 24 }
     }
@@ -61,7 +61,6 @@ export function HeroCarousel({
     const [[page, direction], setPage] = useState([0, 0])
     const [isPaused, setIsPaused] = useState(false)
 
-    // Using wrapped index to keep it within array bounds
     const currentIndex = ((page % items.length) + items.length) % items.length
 
     const paginate = useCallback((newDirection: number) => {
@@ -72,7 +71,6 @@ export function HeroCarousel({
         setPage([index, index > currentIndex ? 1 : -1])
     }, [currentIndex])
 
-    // Drag physics
     const handleDragEnd = (_e: MouseEvent | TouchEvent | PointerEvent, { offset, velocity }: PanInfo) => {
         const swipe = offset.x
         if (swipe < -50 || velocity.x < -500) {
@@ -142,21 +140,17 @@ export function HeroCarousel({
                 </motion.div>
             </AnimatePresence>
 
-            {/* Bottom gradient fade */}
-            <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-surface via-surface/60 to-transparent pointer-events-none" z-index={10} />
+            {/* Bottom gradient fade — z-10 so it sits above the slide but below content */}
+            <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-surface via-surface/60 to-transparent pointer-events-none z-10" />
 
             {/* Left content gradient */}
-            <div className="absolute inset-y-0 left-0 w-full sm:w-2/3 bg-gradient-to-r from-surface/95 via-surface/50 to-transparent pointer-events-none" z-index={10} />
+            <div className="absolute inset-y-0 left-0 w-full sm:w-2/3 bg-gradient-to-r from-surface/95 via-surface/50 to-transparent pointer-events-none z-10" />
 
             {/* Top gradient for status bar */}
-            <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-surface/80 to-transparent pointer-events-none" z-index={10} />
+            <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-surface/80 to-transparent pointer-events-none z-10" />
 
-            {/* Content - positioned at bottom with safe padding */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-12 lg:p-16 pb-8 sm:pb-12 md:pb-16 pointer-events-none" style={{ zIndex: 20 }}>
-                {/* 
-                  Use AnimatePresence or just a key to force the staggered animation 
-                  to re-run every time the slide changes.
-                */}
+            {/* Content — z-20 so it renders above the gradients */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-12 lg:p-16 pb-8 sm:pb-12 md:pb-16 pointer-events-none z-20">
                 <motion.div
                     key={currentIndex}
                     variants={containerVariants}
@@ -164,7 +158,7 @@ export function HeroCarousel({
                     animate="show"
                 >
                     {/* Title */}
-                    <motion.h1 
+                    <motion.h1
                         variants={itemVariants}
                         className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white max-w-4xl leading-[1.1] tracking-tight text-shadow-lg"
                     >
@@ -172,7 +166,7 @@ export function HeroCarousel({
                     </motion.h1>
 
                     {/* Metadata */}
-                    <motion.div 
+                    <motion.div
                         variants={itemVariants}
                         className="flex items-center flex-wrap gap-2 sm:gap-3 mt-4 sm:mt-5"
                     >
@@ -190,7 +184,7 @@ export function HeroCarousel({
                     </motion.div>
 
                     {/* Overview - hidden on very small screens */}
-                    <motion.p 
+                    <motion.p
                         variants={itemVariants}
                         className="hidden sm:block mt-4 md:mt-5 text-sm md:text-base lg:text-lg text-white/70 line-clamp-2 md:line-clamp-3 max-w-xl lg:max-w-2xl leading-relaxed font-medium"
                     >
@@ -198,7 +192,7 @@ export function HeroCarousel({
                     </motion.p>
 
                     {/* Buttons */}
-                    <motion.div 
+                    <motion.div
                         variants={itemVariants}
                         className="flex flex-wrap gap-3 sm:gap-4 mt-6 sm:mt-8 pointer-events-auto"
                     >

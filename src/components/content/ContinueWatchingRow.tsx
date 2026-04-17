@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { Play } from 'lucide-react'
 import { getImageUrl } from '@/services/tmdb'
-import { useContinueWatching } from '@/context/ContinueWatchingContext'
+import { useContinueWatching } from '@/store/useContinueWatchingStore'
 import { useQuery } from '@tanstack/react-query'
 import { getMovieDetails, getTVDetails } from '@/services/tmdb'
 import type { TMDBMovieDetails, TMDBTVDetails } from '@/types'
