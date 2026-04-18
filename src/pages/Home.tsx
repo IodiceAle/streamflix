@@ -55,17 +55,17 @@ export default function Home() {
 
     return (
         <div className="min-h-screen bg-surface pb-24">
-            {/* Hero */}
+            {/* Hero — intentionally full-bleed, no max-width */}
             {trendingLoading ? (
                 <HeroSkeleton />
             ) : (
                 <HeroCarousel items={heroItems} />
             )}
 
-            {/* Content Rows */}
-            <div className="relative z-10 space-y-1 pt-4">
-                {/* Continue Watching */}
+            {/* Content rows — capped at 1800px so they don't stretch on ultrawide */}
+            <div className="relative z-10 space-y-1 pt-4 max-w-[1800px] mx-auto">
                 <ContinueWatchingRow />
+
                 {trendingData?.results ? (
                     <ContentRow
                         title="🔥 Trending Now"
@@ -90,7 +90,6 @@ export default function Home() {
                     <ContentRowSkeleton title="Popular Movies" />
                 )}
 
-                {/* Top 10 */}
                 {popularMovies?.results && (
                     <Top10Row
                         title="🏆 Top 10 Movies"

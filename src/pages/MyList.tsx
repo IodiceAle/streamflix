@@ -6,6 +6,7 @@ import { ContentCard } from '@/components/content/ContentCard'
 import { Skeleton } from '@/components/ui/Skeleton'
 
 type SortOption = 'date-desc' | 'date-asc' | 'title-asc' | 'title-desc'
+type TypeFilter = 'all' | 'movie' | 'tv'
 
 const sortOptions: { value: SortOption; label: string }[] = [
     { value: 'date-desc', label: 'Date Added (Newest)' },
@@ -18,10 +19,17 @@ export default function MyList() {
     const navigate = useNavigate()
     const { myList, loading: listLoading } = useMyList()
     const [sortBy, setSortBy] = useState<SortOption>('date-desc')
+    const [typeFilter, setTypeFilter] = useState<TypeFilter>('all')
 
-    // Sort items using stored metadata (no N+1 TMDB calls)
-    const sortedItems = useMemo(() => {
-        const items = [...myList]
+    const filteredAndSorted = useMemo(() => {
+        let items = [...myList]
+
+        // Type filter
+        if (typeFilter !== 'all') {
+            items = items.filter((item) => item.type === typeFilter)
+        }
+
+        // Sort
         switch (sortBy) {
             case 'date-desc':
                 return items.sort((a, b) => new Date(b.added_at).getTime() - new Date(a.added_at).getTime())
@@ -34,7 +42,11 @@ export default function MyList() {
             default:
                 return items
         }
-    }, [myList, sortBy])
+    }, [myList, sortBy, typeFilter])
+
+    // Count per type for tab labels
+    const movieCount = myList.filter((i) => i.type === 'movie').length
+    const tvCount = myList.filter((i) => i.type === 'tv').length
 
     if (!listLoading && myList.length === 0) {
         return (
@@ -56,9 +68,34 @@ export default function MyList() {
 
     return (
         <div className="min-h-screen bg-surface pt-4 pb-24">
-            {/* Header */}
-            <div className="px-4 mb-6">
-                <h1 className="text-2xl font-bold mb-4">My List</h1>
+            <div className="px-4 mb-6 space-y-4">
+                <h1 className="text-2xl font-bold">My List</h1>
+
+                {/* Type filter tabs — same pattern as Discover */}
+                <div className="flex gap-2 p-1 bg-surface-card rounded-xl">
+                    {([
+                        ['all', 'All', myList.length],
+                        ['movie', 'Movies', movieCount],
+                        ['tv', 'TV Shows', tvCount],
+                    ] as const).map(([t, label, count]) => (
+                        <button
+                            key={t}
+                            onClick={() => setTypeFilter(t)}
+                            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-semibold transition-all ${typeFilter === t
+                                    ? 'bg-white text-black shadow-md'
+                                    : 'text-text-secondary hover:text-white'
+                                }`}
+                        >
+                            {label}
+                            {count > 0 && (
+                                <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${typeFilter === t ? 'bg-black/10 text-black' : 'bg-surface-hover text-text-muted'
+                                    }`}>
+                                    {count}
+                                </span>
+                            )}
+                        </button>
+                    ))}
+                </div>
 
                 {/* Sort dropdown */}
                 <div className="relative inline-block">
@@ -87,9 +124,13 @@ export default function MyList() {
                             </div>
                         ))}
                     </div>
+                ) : filteredAndSorted.length === 0 ? (
+                    <div className="text-center py-16 text-text-muted">
+                        <p>No {typeFilter !== 'all' ? (typeFilter === 'movie' ? 'movies' : 'TV shows') : 'items'} in your list yet.</p>
+                    </div>
                 ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                        {sortedItems.map((item) => (
+                        {filteredAndSorted.map((item) => (
                             <ContentCard
                                 key={`${item.type}-${item.tmdb_id}`}
                                 id={item.tmdb_id}

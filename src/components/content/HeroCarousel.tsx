@@ -31,7 +31,6 @@ const slideVariants = {
     })
 }
 
-// Staggered text variants
 const containerVariants = {
     hidden: { opacity: 0 },
     show: {
@@ -97,8 +96,9 @@ export function HeroCarousel({
     const handleMoreInfo = () => navigate(`/detail/${type}/${currentItem.id}`)
 
     return (
+        // Added `group` so the `group-hover:opacity-100` on the nav arrows works
         <motion.div
-            className="relative w-full min-h-[50vh] sm:min-h-[55vh] md:min-h-[70vh] lg:min-h-[80vh] overflow-hidden bg-black"
+            className="group relative w-full min-h-[50vh] sm:min-h-[55vh] md:min-h-[70vh] lg:min-h-[80vh] overflow-hidden bg-black"
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
             drag="x"
@@ -135,21 +135,15 @@ export function HeroCarousel({
                         animate={{ scale: 1.15 }}
                         transition={{ duration: 15, ease: "linear" }}
                     />
-                    {/* Image overlay for depth */}
                     <div className="absolute inset-0 bg-gradient-to-r from-surface via-transparent to-transparent opacity-90" />
                 </motion.div>
             </AnimatePresence>
 
-            {/* Bottom gradient fade — z-10 so it sits above the slide but below content */}
             <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-surface via-surface/60 to-transparent pointer-events-none z-10" />
-
-            {/* Left content gradient */}
             <div className="absolute inset-y-0 left-0 w-full sm:w-2/3 bg-gradient-to-r from-surface/95 via-surface/50 to-transparent pointer-events-none z-10" />
-
-            {/* Top gradient for status bar */}
             <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-surface/80 to-transparent pointer-events-none z-10" />
 
-            {/* Content — z-20 so it renders above the gradients */}
+            {/* Content */}
             <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-12 lg:p-16 pb-8 sm:pb-12 md:pb-16 pointer-events-none z-20">
                 <motion.div
                     key={currentIndex}
@@ -157,7 +151,6 @@ export function HeroCarousel({
                     initial="hidden"
                     animate="show"
                 >
-                    {/* Title */}
                     <motion.h1
                         variants={itemVariants}
                         className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 
@@ -166,7 +159,6 @@ export function HeroCarousel({
                         {title}
                     </motion.h1>
 
-                    {/* Metadata */}
                     <motion.div
                         variants={itemVariants}
                         className="flex items-center flex-wrap gap-2 sm:gap-3 mt-4 sm:mt-5"
@@ -184,7 +176,6 @@ export function HeroCarousel({
                         </span>
                     </motion.div>
 
-                    {/* Overview - hidden on very small screens */}
                     <motion.p
                         variants={itemVariants}
                         className="hidden sm:block mt-4 md:mt-5 text-sm md:text-base lg:text-lg text-white/70 line-clamp-2 md:line-clamp-3 max-w-xl lg:max-w-2xl leading-relaxed font-medium"
@@ -192,7 +183,6 @@ export function HeroCarousel({
                         {currentItem.overview}
                     </motion.p>
 
-                    {/* Buttons */}
                     <motion.div
                         variants={itemVariants}
                         className="flex flex-wrap gap-3 sm:gap-4 mt-6 sm:mt-8 pointer-events-auto"
@@ -215,19 +205,19 @@ export function HeroCarousel({
                 </motion.div>
             </div>
 
-            {/* Navigation arrows - hidden on mobile */}
+            {/* Navigation arrows — now work because parent has `group` class */}
             {items.length > 1 && (
                 <>
                     <button
                         onClick={() => paginate(-1)}
-                        className="hidden md:flex absolute left-4 md:left-8 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full glass-dark items-center justify-center transition-all hover:bg-white/20 hover:scale-110 opacity-0 group-hover:opacity-100 hover:opacity-100 z-30"
+                        className="hidden md:flex absolute left-4 md:left-8 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full glass-dark items-center justify-center transition-all hover:bg-white/20 hover:scale-110 opacity-0 group-hover:opacity-100 z-30"
                         aria-label="Previous"
                     >
                         <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-white" />
                     </button>
                     <button
                         onClick={() => paginate(1)}
-                        className="hidden md:flex absolute right-4 md:right-8 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full glass-dark items-center justify-center transition-all hover:bg-white/20 hover:scale-110 opacity-0 group-hover:opacity-100 hover:opacity-100 z-30"
+                        className="hidden md:flex absolute right-4 md:right-8 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full glass-dark items-center justify-center transition-all hover:bg-white/20 hover:scale-110 opacity-0 group-hover:opacity-100 z-30"
                         aria-label="Next"
                     >
                         <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-white" />
@@ -242,10 +232,7 @@ export function HeroCarousel({
                         <button
                             key={index}
                             onClick={() => goToSlide(index)}
-                            className={`rounded-full transition-all duration-300 p-2 -m-1 ${index === currentIndex
-                                ? 'sm:p-2.5 sm:-m-1.5'
-                                : ''
-                                }`}
+                            className={`rounded-full transition-all duration-300 p-2 -m-1 ${index === currentIndex ? 'sm:p-2.5 sm:-m-1.5' : ''}`}
                             aria-label={`Go to slide ${index + 1}`}
                         >
                             <span className={`block rounded-full transition-all duration-300 ${index === currentIndex

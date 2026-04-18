@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, SkipForward, Check, Loader2, Flag } from 'lucide-react'
@@ -16,23 +16,23 @@ export default function Watch() {
 
     const [iframeLoaded, setIframeLoaded] = useState(false)
     const [isMarkedWatched, setIsMarkedWatched] = useState(false)
+    // Controls auto-hide: visible on load, hidden after 3s of no interaction
+    const [controlsVisible, setControlsVisible] = useState(true)
+    const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     const isMovie = type === 'movie'
     const tmdbId = Number(id)
     const seasonNum = season ? Number(season) : undefined
     const episodeNum = episode ? Number(episode) : undefined
 
-    // Validate route parameters — computed but NOT returned yet (hooks must come first)
     const isInvalidRoute = !tmdbId || tmdbId <= 0 || !Number.isInteger(tmdbId) || (type !== 'movie' && type !== 'tv')
 
-    // Fetch details for title/poster
     const { data: details } = useQuery<TMDBMovieDetails | TMDBTVDetails>({
         queryKey: ['details', type, id],
         queryFn: () => isMovie ? getMovieDetails(tmdbId) : getTVDetails(tmdbId),
         enabled: !isInvalidRoute && !!id,
     })
 
-    // Fetch season details for next episode logic
     const { data: seasonDetails } = useQuery({
         queryKey: ['season', id, seasonNum],
         queryFn: () => getSeasonDetails(tmdbId, seasonNum!),
@@ -44,19 +44,30 @@ export default function Watch() {
         (ep) => ep.episode_number === episodeNum
     )?.name
 
-    // Check if already marked as watched
     const existingProgress = getProgress(tmdbId, isMovie ? 'movie' : 'tv', seasonNum, episodeNum)
     const alreadyCompleted = existingProgress?.completed || false
 
-    // Construct embed URL
+    // Pass stored progress seconds so the player can resume from where the user left off
     const embedUrl = isMovie
-        ? getMovieEmbedUrl(tmdbId)
-        : getTVEmbedUrl(tmdbId, seasonNum || 1, episodeNum || 1)
+        ? getMovieEmbedUrl(tmdbId, existingProgress?.progress_seconds || undefined)
+        : getTVEmbedUrl(tmdbId, seasonNum || 1, episodeNum || 1, existingProgress?.progress_seconds || undefined)
 
-    // Save initial progress when page loads
+    // Auto-hide controls logic
+    const resetHideTimer = useCallback(() => {
+        setControlsVisible(true)
+        if (hideTimerRef.current) clearTimeout(hideTimerRef.current)
+        hideTimerRef.current = setTimeout(() => setControlsVisible(false), 3000)
+    }, [])
+
+    useEffect(() => {
+        resetHideTimer()
+        return () => {
+            if (hideTimerRef.current) clearTimeout(hideTimerRef.current)
+        }
+    }, [resetHideTimer])
+
     useEffect(() => {
         if (!details) return
-
         updateProgress({
             tmdb_id: tmdbId,
             type: isMovie ? 'movie' : 'tv',
@@ -71,7 +82,6 @@ export default function Watch() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [details, tmdbId])
 
-    // Determine next episode
     const hasNextEpisode = useMemo(() => {
         if (isMovie || !seasonDetails?.episodes || !episodeNum) return false
         return episodeNum < seasonDetails.episodes.length
@@ -83,10 +93,7 @@ export default function Watch() {
         }
     }, [hasNextEpisode, id, seasonNum, episodeNum, navigate])
 
-    // Now that all hooks have been called, we can do the early return
-    if (isInvalidRoute) {
-        return <Navigate to="/" replace />
-    }
+    if (isInvalidRoute) return <Navigate to="/" replace />
 
     const handleMarkAsWatched = async () => {
         await markAsWatched(tmdbId, isMovie ? 'movie' : 'tv', seasonNum, episodeNum)
@@ -94,19 +101,22 @@ export default function Watch() {
         success(isMovie ? `${title} marked as watched!` : `S${seasonNum}:E${episodeNum} marked as watched!`)
     }
 
-    const handleBack = () => {
-        navigate(-1)
-    }
-
     return (
-        <div className="fixed inset-0 bg-black z-[60] flex flex-col">
-            {/* Top controls */}
-            <div className="absolute top-0 left-0 right-0 z-20 bg-gradient-to-b from-black/80 to-transparent">
+        <div
+            className="fixed inset-0 bg-black z-[60] flex flex-col cursor-pointer"
+            onClick={resetHideTimer}
+            onMouseMove={resetHideTimer}
+            onTouchStart={resetHideTimer}
+        >
+            {/* Top controls — fade out after inactivity */}
+            <div
+                className={`absolute top-0 left-0 right-0 z-20 bg-gradient-to-b from-black/80 to-transparent transition-opacity duration-300 ${controlsVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+            >
                 <div className="flex items-center justify-between px-4 py-3 md:px-8 md:py-4">
                     {/* Left: Back + Title */}
                     <div className="flex items-center gap-3 min-w-0">
                         <button
-                            onClick={handleBack}
+                            onClick={(e) => { e.stopPropagation(); navigate(-1) }}
                             className="p-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur transition-colors flex-shrink-0"
                             aria-label="Go back"
                         >
@@ -127,9 +137,8 @@ export default function Watch() {
 
                     {/* Right: Actions */}
                     <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-                        {/* Mark as Watched button */}
                         <button
-                            onClick={handleMarkAsWatched}
+                            onClick={(e) => { e.stopPropagation(); handleMarkAsWatched() }}
                             disabled={isMarkedWatched || alreadyCompleted}
                             className={`flex items-center gap-1.5 px-2 py-1.5 sm:px-3 md:px-4 md:py-2 rounded-lg text-xs md:text-sm font-medium transition-all ${isMarkedWatched || alreadyCompleted
                                 ? 'bg-green-500/20 text-green-400 border border-green-500/30'
@@ -137,22 +146,15 @@ export default function Watch() {
                                 }`}
                         >
                             {isMarkedWatched || alreadyCompleted ? (
-                                <>
-                                    <Check className="w-4 h-4" />
-                                    <span className="hidden sm:inline">Watched</span>
-                                </>
+                                <><Check className="w-4 h-4" /><span className="hidden sm:inline">Watched</span></>
                             ) : (
-                                <>
-                                    <Flag className="w-4 h-4" />
-                                    <span className="hidden sm:inline">Mark Watched</span>
-                                </>
+                                <><Flag className="w-4 h-4" /><span className="hidden sm:inline">Mark Watched</span></>
                             )}
                         </button>
 
-                        {/* Next Episode button */}
                         {hasNextEpisode && (
                             <button
-                                onClick={handleNextEpisode}
+                                onClick={(e) => { e.stopPropagation(); handleNextEpisode() }}
                                 className="flex items-center gap-1.5 px-2 py-1.5 sm:px-3 md:px-4 md:py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs md:text-sm font-medium transition-colors border border-white/20"
                             >
                                 <span className="hidden sm:inline">Next</span>
@@ -171,7 +173,7 @@ export default function Watch() {
                 </div>
             )}
 
-            {/* Video iframe */}
+            {/* Video iframe — pointer-events-none on the wrapper so clicks reach our overlay */}
             <iframe
                 src={embedUrl}
                 className="w-full h-full border-0"

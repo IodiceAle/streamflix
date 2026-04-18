@@ -19,14 +19,10 @@ export function BottomNav() {
 
     return (
         <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
-            {/* Background with blur */}
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/95 to-black/80 backdrop-blur-2xl" />
-
-            {/* Top border gradient */}
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-            {/* Content */}
-            <div className="relative flex items-center justify-around h-16 md:h-18 safe-area-bottom max-w-lg mx-auto">
+            <div className="relative flex items-center justify-around h-16 safe-area-bottom max-w-lg mx-auto px-1">
                 {navItems.map(({ path, icon: Icon, label }) => {
                     const isActive = path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
 
@@ -34,31 +30,35 @@ export function BottomNav() {
                         <NavLink
                             key={path}
                             to={path}
-                            className={`relative flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-2xl transition-colors duration-300 z-10 ${isActive
-                                ? 'text-white'
-                                : 'text-white/50 hover:text-white/80 active:scale-95'
+                            className={`relative flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-2xl transition-colors duration-300 z-10 min-w-0 flex-1 ${isActive
+                                    ? 'text-white'
+                                    : 'text-white/50 hover:text-white/80 active:scale-95'
                                 }`}
                         >
-                            {/* Animated Background Pill */}
                             {isActive && (
                                 <motion.div
                                     layoutId="bottomNavActiveTab"
-                                    className="absolute inset-0 bg-white/10 rounded-2xl z-[-1] border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]" initial={false}
+                                    className="absolute inset-0 bg-white/10 rounded-2xl z-[-1] border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+                                    initial={false}
                                     transition={{ type: "spring", stiffness: 500, damping: 30 }}
                                 />
                             )}
 
-                            {/* Icon container */}
                             <div className={`relative transition-transform duration-300 ${isActive ? 'scale-110' : ''}`}>
                                 <Icon
-                                    className="w-5 h-5 md:w-6 md:h-6"
+                                    className="w-5 h-5"
                                     strokeWidth={isActive ? 2.5 : 1.8}
                                     color={isActive ? 'white' : 'rgba(255,255,255,0.4)'}
                                 />
                             </div>
 
-                            {/* Label */}
-                            <span className={`text-[10px] md:text-xs font-medium transition-all ${isActive ? 'font-bold text-white' : ''
+                            {/*
+                              Labels: hidden on very small phones (< 360px) to prevent
+                              crowding. min 12px to meet WCAG text size guidance.
+                              Use xs: prefix (475px breakpoint) as the show threshold
+                              so labels appear once there's enough room per item.
+                            */}
+                            <span className={`hidden xs:block text-xs font-medium leading-none transition-all truncate max-w-full ${isActive ? 'font-bold text-white' : ''
                                 }`}>
                                 {label}
                             </span>

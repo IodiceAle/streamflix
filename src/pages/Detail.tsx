@@ -26,41 +26,28 @@ export default function Detail() {
     const isMovie = type === 'movie'
     const numericId = Number(id)
 
-    // Validate route parameters — computed but NOT returned yet (hooks must come first)
     const isInvalidRoute = !numericId || numericId <= 0 || !Number.isInteger(numericId) || (type !== 'movie' && type !== 'tv')
 
     const inList = !isInvalidRoute && type ? isInList(numericId, type) : false
 
-    // Fetch details
     const { data: details, isLoading } = useQuery({
         queryKey: ['details', type, id],
         queryFn: async () => {
-            if (isMovie) {
-                return getMovieDetails(Number(id))
-            } else {
-                return getTVDetails(Number(id))
-            }
+            if (isMovie) return getMovieDetails(Number(id))
+            else return getTVDetails(Number(id))
         },
         enabled: !isInvalidRoute && !!type && !!id,
     })
 
-    // Fetch season episodes (TV only)
     const { data: seasonDetails } = useQuery({
         queryKey: ['season', id, selectedSeason],
         queryFn: () => getSeasonDetails(Number(id), selectedSeason),
         enabled: !isInvalidRoute && !isMovie && !!id,
     })
 
-    // Now that all hooks have been called, we can do the early returns
-    if (isInvalidRoute) {
-        return <Navigate to="/" replace />
-    }
+    if (isInvalidRoute) return <Navigate to="/" replace />
+    if (isLoading || !details) return <DetailSkeleton />
 
-    if (isLoading || !details) {
-        return <DetailSkeleton />
-    }
-
-    // Type-safe property access
     const title = isMovie ? (details as TMDBMovieDetails).title : (details as TMDBTVDetails).name
     const releaseDate = isMovie
         ? (details as TMDBMovieDetails).release_date
@@ -81,11 +68,8 @@ export default function Detail() {
     }
 
     const handlePlay = () => {
-        if (isMovie) {
-            navigate(`/watch/movie/${id}`)
-        } else {
-            navigate(`/watch/tv/${id}/1/1`)
-        }
+        if (isMovie) navigate(`/watch/movie/${id}`)
+        else navigate(`/watch/tv/${id}/1/1`)
     }
 
     const handleListToggle = () => {
@@ -112,8 +96,8 @@ export default function Detail() {
 
     return (
         <div className="min-h-screen bg-surface">
-            {/* Hero Section */}
-            <div className="relative w-full aspect-[16/9] max-h-[60vh]">
+            {/* Hero — full bleed, capped height on short viewports */}
+            <div className="relative w-full aspect-[16/9] max-h-[50vh] sm:max-h-[60vh]">
                 <img
                     src={getBackdropUrl(details.backdrop_path, 'w1280')}
                     alt=""
@@ -122,8 +106,11 @@ export default function Detail() {
                 <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/60 to-transparent" />
             </div>
 
-            {/* Content */}
-            <div className="relative -mt-32 z-10 px-4 space-y-6">
+            {/*
+              Content — constrained width so text is readable on wide screens.
+              Hero stays full-bleed above, this section centers itself.
+            */}
+            <div className="relative -mt-32 z-10 max-w-4xl mx-auto px-4 space-y-6 pb-24">
                 {/* Title */}
                 <h1 className="text-3xl sm:text-4xl font-bold">{title}</h1>
 
@@ -194,7 +181,7 @@ export default function Detail() {
                     </button>
                 )}
 
-                {/* Cast & Crew */}
+                {/* Cast */}
                 {details.credits?.cast?.length && (
                     <div className="space-y-3">
                         <h2 className="text-xl font-semibold">Cast & Crew</h2>
@@ -223,7 +210,7 @@ export default function Detail() {
                     </div>
                 )}
 
-                {/* Episodes Section (TV Only) */}
+                {/* Episodes (TV Only) */}
                 {tvDetails?.seasons && (
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
@@ -274,7 +261,6 @@ export default function Detail() {
                                         </div>
                                     </button>
 
-                                    {/* Expandable overview */}
                                     {episode.overview && (
                                         <div className="px-3 pb-3">
                                             <button
@@ -286,15 +272,9 @@ export default function Detail() {
                                                 className="flex items-center gap-1 text-xs text-text-muted hover:text-white"
                                             >
                                                 {expandedEpisode === episode.id ? (
-                                                    <>
-                                                        <ChevronUp className="w-4 h-4" />
-                                                        Hide Overview
-                                                    </>
+                                                    <><ChevronUp className="w-4 h-4" />Hide Overview</>
                                                 ) : (
-                                                    <>
-                                                        <ChevronDown className="w-4 h-4" />
-                                                        Show Overview
-                                                    </>
+                                                    <><ChevronDown className="w-4 h-4" />Show Overview</>
                                                 )}
                                             </button>
                                             {expandedEpisode === episode.id && (
@@ -310,17 +290,16 @@ export default function Detail() {
                     </div>
                 )}
 
-                {/* Similar Content */}
-                {details.similar?.results?.length > 0 && (
-                    <div className="-mx-4">
-                        <ContentRow
-                            title="More Like This"
-                            items={details.similar.results}
-                            type={type!}
-                        />
-                    </div>
-                )}
+                {/* Similar Content — break out of the max-w container for full-width rows */}
             </div>
+
+            {details.similar?.results?.length > 0 && (
+                <ContentRow
+                    title="More Like This"
+                    items={details.similar.results}
+                    type={type!}
+                />
+            )}
 
             {/* Trailer Modal */}
             <Modal

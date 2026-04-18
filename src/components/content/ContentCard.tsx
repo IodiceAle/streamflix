@@ -31,7 +31,10 @@ export function ContentCard({
     const [imageLoaded, setImageLoaded] = useState(false)
     const [isHovered, setIsHovered] = useState(false)
 
-    const isNew = releaseDate ? (Date.now() - new Date(releaseDate).getTime()) < 60 * 24 * 60 * 60 * 1000 : false
+    // 14 days is the industry-standard "new" window
+    const isNew = releaseDate
+        ? (Date.now() - new Date(releaseDate).getTime()) < 14 * 24 * 60 * 60 * 1000
+        : false
 
     const inList = isInList(id, type)
 
@@ -46,7 +49,7 @@ export function ContentCard({
                 addToList(id, type, { title })
             }
         },
-        [inList, id, type, addToList, removeFromList]
+        [inList, id, type, addToList, removeFromList, title]
     )
 
     const handlePlayClick = (e: React.MouseEvent) => {
@@ -66,7 +69,7 @@ export function ContentCard({
             whileHover={{ y: -8 }}
             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
         >
-            {/* Glowing Shadow Background */}
+            {/* Glow — desktop hover only */}
             <motion.div
                 className="absolute -inset-2 bg-brand/40 rounded-xl blur-xl z-0"
                 initial={{ opacity: 0 }}
@@ -75,10 +78,8 @@ export function ContentCard({
             />
 
             <div className="relative aspect-poster overflow-hidden rounded-xl z-10 bg-surface-card border border-white/5">
-                {/* Skeleton */}
                 {!imageLoaded && <div className="absolute inset-0 skeleton rounded-xl" />}
 
-                {/* Poster */}
                 <img
                     src={getImageUrl(posterPath, 'w342')}
                     alt={title}
@@ -106,15 +107,16 @@ export function ContentCard({
                     </div>
                 )}
 
-                {/* Gradient overlay — always visible on mobile for readability */}
+                {/* Bottom gradient — always present for readability */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
 
-                {/* Interactive overlay — always visible on mobile, hover-only on desktop */}
+                {/*
+                  Interactive overlay — desktop hover only.
+                  On mobile the card tap → detail, and detail has all actions.
+                  Hiding on mobile removes the permanently-cluttered look.
+                */}
                 {showOverlay && (
-                    <div
-                        className={`absolute inset-0 flex flex-col items-center justify-center gap-2 transition-all duration-300 opacity-100 md:opacity-0 md:group-hover/card:opacity-100`}
-                    >
-                        {/* Play button */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 transition-all duration-300 opacity-0 md:group-hover/card:opacity-100">
                         <button
                             onClick={handlePlayClick}
                             className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-full glass-premium flex items-center justify-center transition-all duration-300 hover:scale-110 hover:bg-brand group/play active:scale-95 shadow-glow"
@@ -123,7 +125,6 @@ export function ContentCard({
                             <Play className="w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 text-white fill-white ml-1 transition-transform group-hover/play:scale-110" />
                         </button>
 
-                        {/* Add to list */}
                         <button
                             onClick={handleListToggle}
                             className="absolute top-2 right-2 w-9 h-9 rounded-full glass-dark flex items-center justify-center transition-all hover:bg-white/20 hover:scale-110 shadow-lg"
@@ -138,8 +139,12 @@ export function ContentCard({
                     </div>
                 )}
 
-                {/* Title at bottom — always visible on mobile */}
-                <div className={`absolute bottom-0 left-0 right-0 p-2 md:p-3 transition-opacity duration-300 opacity-0 group-hover/card:opacity-100`}>
+                {/*
+                  Title strip — always visible on mobile, hover-only on desktop.
+                  Uses `md:opacity-0 md:group-hover/card:opacity-100` so mobile
+                  users can read titles without hovering.
+                */}
+                <div className="absolute bottom-0 left-0 right-0 p-2 md:p-3 transition-opacity duration-300 md:opacity-0 md:group-hover/card:opacity-100">
                     <p className="text-white text-[11px] md:text-xs lg:text-sm font-semibold line-clamp-2 text-shadow">
                         {title}
                     </p>

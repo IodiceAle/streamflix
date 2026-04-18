@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { Search as SearchIcon, X, Clock, Loader2, Sparkles } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
@@ -18,6 +18,7 @@ export default function Search() {
     const [debouncedQuery, setDebouncedQuery] = useState(initialQuery)
     const [recentSearches, setRecentSearches] = useState<string[]>([])
     const [isFocused, setIsFocused] = useState(false)
+    const inputRef = useRef<HTMLInputElement>(null)
 
     useEffect(() => {
         try {
@@ -28,6 +29,15 @@ export default function Search() {
             }
         } catch { /* ignore corrupt localStorage data */ }
     }, [])
+
+    // Only auto-focus on desktop (pointer: fine = mouse) to avoid keyboard-on-load on mobile.
+    // Also focus if a query is already present (user came from the TopNav search bar).
+    useEffect(() => {
+        const isDesktop = window.matchMedia('(pointer: fine)').matches
+        if (isDesktop || initialQuery) {
+            inputRef.current?.focus()
+        }
+    }, [initialQuery])
 
     // Sync state when URL params change (e.g., from TopNav)
     useEffect(() => {
@@ -45,7 +55,6 @@ export default function Search() {
             const trimmed = query.trim()
             setDebouncedQuery(trimmed)
 
-            // Only update URL if it differs to avoid infinite loops
             if (trimmed !== (searchParams.get('q') || '')) {
                 if (trimmed) {
                     setSearchParams({ q: trimmed }, { replace: true })
@@ -80,6 +89,12 @@ export default function Search() {
         localStorage.removeItem(RECENT_SEARCHES_KEY)
     }
 
+    const removeRecentSearch = (term: string) => {
+        const updated = recentSearches.filter((s) => s !== term)
+        setRecentSearches(updated)
+        localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated))
+    }
+
     const handleSearchSelect = (term: string) => {
         setQuery(term)
         saveSearch(term)
@@ -108,6 +123,7 @@ export default function Search() {
                     <div className="relative">
                         <SearchIcon className={`absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${isFocused ? 'text-brand' : 'text-text-muted'}`} />
                         <input
+                            ref={inputRef}
                             type="text"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
@@ -116,7 +132,6 @@ export default function Search() {
                             placeholder="Search movies & TV shows..."
                             className="w-full pl-14 pr-14 py-5 glass rounded-2xl text-white placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand text-lg font-medium"
                             maxLength={200}
-                            autoFocus
                         />
                         {query && (
                             <button
@@ -220,13 +235,22 @@ export default function Search() {
                             </div>
                             <div className="flex flex-wrap gap-2">
                                 {recentSearches.map((term) => (
-                                    <button
-                                        key={term}
-                                        onClick={() => handleSearchSelect(term)}
-                                        className="px-4 py-2.5 glass rounded-full text-sm font-medium hover:bg-white/10 transition-colors"
-                                    >
-                                        {term}
-                                    </button>
+                                    <div key={term} className="flex items-center gap-1 px-4 py-2.5 glass rounded-full text-sm font-medium">
+                                        <button
+                                            onClick={() => handleSearchSelect(term)}
+                                            className="hover:text-white transition-colors"
+                                        >
+                                            {term}
+                                        </button>
+                                        {/* Per-item removal */}
+                                        <button
+                                            onClick={() => removeRecentSearch(term)}
+                                            className="ml-1 text-text-muted hover:text-white transition-colors"
+                                            aria-label={`Remove "${term}" from recent searches`}
+                                        >
+                                            <X className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
                                 ))}
                             </div>
                         </div>

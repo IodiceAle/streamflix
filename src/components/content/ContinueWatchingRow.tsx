@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { Play } from 'lucide-react'
-import { getImageUrl } from '@/services/tmdb'
+import { getBackdropUrl, getImageUrl } from '@/services/tmdb'
 import { useContinueWatching } from '@/store/useContinueWatchingStore'
 import { useQuery } from '@tanstack/react-query'
 import { getMovieDetails, getTVDetails } from '@/services/tmdb'
@@ -14,6 +14,7 @@ interface ContinueWatchingCardProps {
     progress: number
     title?: string
     posterPath?: string
+    backdropPath?: string
 }
 
 function ContinueWatchingCard({
@@ -24,21 +25,23 @@ function ContinueWatchingCard({
     progress,
     title: propTitle,
     posterPath: propPosterPath,
+    backdropPath: propBackdropPath,
 }: ContinueWatchingCardProps) {
     const navigate = useNavigate()
 
+    // Only fetch if we're missing both title and backdrop
     const { data: details } = useQuery<TMDBMovieDetails | TMDBTVDetails>({
         queryKey: ['details', mediaType, tmdbId],
         queryFn: async () => {
-            if (mediaType === 'movie') {
-                return getMovieDetails(tmdbId)
-            }
+            if (mediaType === 'movie') return getMovieDetails(tmdbId)
             return getTVDetails(tmdbId)
         },
         enabled: !propTitle,
     })
 
     const title = propTitle || (details ? ('title' in details ? details.title : details.name) : '')
+    // Prefer landscape backdrop for the 16:9 card — fall back to poster only when absent
+    const backdropPath = propBackdropPath || details?.backdrop_path || null
     const posterPath = propPosterPath || details?.poster_path || null
 
     if (!title) return null
@@ -54,11 +57,13 @@ function ContinueWatchingCard({
     return (
         <button
             onClick={handleClick}
-            className="flex-shrink-0 w-[160px] sm:w-[180px] group"
+            className="flex-shrink-0 w-[160px] sm:w-[200px] group"
         >
             <div className="relative aspect-video rounded-lg overflow-hidden bg-surface-card">
                 <img
-                    src={getImageUrl(posterPath, 'w342')}
+                    src={backdropPath
+                        ? getBackdropUrl(backdropPath, 'w300')
+                        : getImageUrl(posterPath, 'w342')}
                     alt={title}
                     className="w-full h-full object-cover"
                 />
@@ -90,7 +95,6 @@ function ContinueWatchingCard({
 export function ContinueWatchingRow() {
     const { continueWatching, loading } = useContinueWatching()
 
-    // Filter out completed items — only show in-progress content
     const inProgressItems = continueWatching.filter((item) => !item.completed)
 
     if (loading || inProgressItems.length === 0) {
@@ -119,6 +123,7 @@ export function ContinueWatchingRow() {
                             progress={progress}
                             title={item.title}
                             posterPath={item.poster_path}
+                            backdropPath={item.backdrop_path}
                         />
                     )
                 })}

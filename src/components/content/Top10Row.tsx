@@ -47,8 +47,7 @@ export function Top10Row({ title, items, type = 'mixed' }: Top10RowProps) {
             <div className="relative">
                 {/* Left arrow */}
                 <div
-                    className={`absolute left-0 top-0 bottom-0 z-20 w-16 bg-gradient-to-r from-surface to-transparent flex items-center pl-2 transition-opacity ${showLeftArrow ? 'opacity-100' : 'opacity-0 pointer-events-none'
-                        }`}
+                    className={`absolute left-0 top-0 bottom-0 z-20 w-16 bg-gradient-to-r from-surface to-transparent flex items-center pl-2 transition-opacity ${showLeftArrow ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                 >
                     <button
                         onClick={() => scroll('left')}
@@ -73,12 +72,12 @@ export function Top10Row({ title, items, type = 'mixed' }: Top10RowProps) {
                             <button
                                 key={item.id}
                                 onClick={() => navigate(`/detail/${contentType}/${item.id}`)}
-                                className="flex-shrink-0 relative flex items-end group cursor-pointer"
-                                style={{ width: '180px', height: '200px' }}
+                                // Responsive sizing: slightly smaller on mobile to match ContentRow card rhythm
+                                className="flex-shrink-0 relative flex items-end group cursor-pointer w-[150px] h-[180px] sm:w-[180px] sm:h-[200px]"
                             >
                                 {/* Large rank number */}
                                 <span
-                                    className="absolute left-0 bottom-0 font-black text-[120px] leading-none select-none"
+                                    className="absolute left-0 bottom-0 font-black leading-none select-none text-[100px] sm:text-[120px]"
                                     style={{
                                         WebkitTextStroke: '3px rgba(255,255,255,0.3)',
                                         color: 'transparent',
@@ -89,7 +88,7 @@ export function Top10Row({ title, items, type = 'mixed' }: Top10RowProps) {
                                 </span>
 
                                 {/* Poster */}
-                                <div className="absolute right-0 top-0 w-[110px] h-[165px] rounded-lg overflow-hidden shadow-xl group-hover:scale-105 transition-transform z-10">
+                                <div className="absolute right-0 top-0 w-[100px] h-[150px] sm:w-[110px] sm:h-[165px] rounded-lg overflow-hidden shadow-xl group-hover:scale-105 transition-transform z-10">
                                     <img
                                         src={getImageUrl(item.poster_path, 'w342')}
                                         alt={itemTitle}
@@ -104,8 +103,7 @@ export function Top10Row({ title, items, type = 'mixed' }: Top10RowProps) {
 
                 {/* Right arrow */}
                 <div
-                    className={`absolute right-0 top-0 bottom-0 z-20 w-16 bg-gradient-to-l from-surface to-transparent flex items-center justify-end pr-2 transition-opacity ${showRightArrow ? 'opacity-100' : 'opacity-0 pointer-events-none'
-                        }`}
+                    className={`absolute right-0 top-0 bottom-0 z-20 w-16 bg-gradient-to-l from-surface to-transparent flex items-center justify-end pr-2 transition-opacity ${showRightArrow ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                 >
                     <button
                         onClick={() => scroll('right')}
