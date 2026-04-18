@@ -107,8 +107,7 @@ export function ContentCard({
                 )}
 
                 {/* Gradient overlay — always visible on mobile for readability */}
-                <div className={`absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent transition-opacity duration-300 opacity-70 md:opacity-60 ${isHovered ? 'md:opacity-100' : ''
-                    }`} />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
 
                 {/* Interactive overlay — always visible on mobile, hover-only on desktop */}
                 {showOverlay && (
@@ -140,7 +139,7 @@ export function ContentCard({
                 )}
 
                 {/* Title at bottom — always visible on mobile */}
-                <div className={`absolute bottom-0 left-0 right-0 p-2 md:p-3 transition-opacity duration-300 opacity-100 md:opacity-0 md:group-hover/card:opacity-100`}>
+                <div className={`absolute bottom-0 left-0 right-0 p-2 md:p-3 transition-opacity duration-300 opacity-0 group-hover/card:opacity-100`}>
                     <p className="text-white text-[11px] md:text-xs lg:text-sm font-semibold line-clamp-2 text-shadow">
                         {title}
                     </p>
