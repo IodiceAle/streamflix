@@ -43,7 +43,7 @@ export function ContentCard({
             if (inList) {
                 removeFromList(id, type)
             } else {
-                addToList(id, type)
+                addToList(id, type, { title })
             }
         },
         [inList, id, type, addToList, removeFromList]

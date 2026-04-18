@@ -4,7 +4,7 @@ import { supabase } from '@/services/supabase'
 import { useAuthStore } from './useAuthStore'
 
 export interface AppSettings {
-    theme: 'dark'
+    theme: 'dark' | 'light' | 'system'
     language: string
     subtitle_language: string
     auto_play: boolean
@@ -19,7 +19,7 @@ export interface AppSettings {
 }
 
 const defaultSettings: AppSettings = {
-    theme: 'dark',
+    theme: 'system',
     language: 'en',
     subtitle_language: 'en',
     auto_play: true,
@@ -40,6 +40,31 @@ interface AppSettingsState {
     updateSetting: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => Promise<void>
     updateSettings: (updates: Partial<AppSettings>) => Promise<void>
 }
+
+// --- Theme application logic ---
+
+const systemQuery = window.matchMedia('(prefers-color-scheme: dark)')
+let systemListener: (() => void) | null = null
+
+function applyTheme(theme: AppSettings['theme']) {
+    // Always remove the old system listener before switching modes
+    if (systemListener) {
+        systemQuery.removeEventListener('change', systemListener)
+        systemListener = null
+    }
+
+    if (theme === 'system') {
+        const sync = () =>
+            document.documentElement.classList.toggle('dark', systemQuery.matches)
+        sync()
+        systemListener = sync
+        systemQuery.addEventListener('change', sync)
+    } else {
+        document.documentElement.classList.toggle('dark', theme === 'dark')
+    }
+}
+
+// --- Store ---
 
 export const useAppSettingsStore = create<AppSettingsState>()(
     persist(
@@ -62,7 +87,6 @@ export const useAppSettingsStore = create<AppSettingsState>()(
 
                     if (error) {
                         if (error.code === 'PGRST116') {
-                            // No profile yet — create one from current settings
                             // eslint-disable-next-line @typescript-eslint/no-unused-vars
                             const { email: _, ...settingsWithoutEmail } = get().settings
                             await supabase.from('profiles').insert({
@@ -75,7 +99,7 @@ export const useAppSettingsStore = create<AppSettingsState>()(
 
                     if (data) {
                         const merged: AppSettings = {
-                            theme: data.theme || get().settings.theme,
+                            theme: (data.theme as AppSettings['theme']) || get().settings.theme,
                             language: data.language || get().settings.language,
                             subtitle_language: data.subtitle_language || get().settings.subtitle_language,
                             auto_play: data.auto_play ?? get().settings.auto_play,
@@ -89,6 +113,7 @@ export const useAppSettingsStore = create<AppSettingsState>()(
                             email: user.email || '',
                         }
                         set({ settings: merged })
+                        applyTheme(merged.theme)
                     }
                 } catch (error) {
                     if (import.meta.env.DEV) console.error('Error fetching settings:', error)
@@ -102,8 +127,9 @@ export const useAppSettingsStore = create<AppSettingsState>()(
             },
 
             updateSettings: async (updates) => {
-                // Optimistic update — persist middleware writes to localStorage automatically
                 set((s) => ({ settings: { ...s.settings, ...updates } }))
+
+                if (updates.theme) applyTheme(updates.theme)
 
                 const user = useAuthStore.getState().user
                 if (user) {
@@ -121,14 +147,17 @@ export const useAppSettingsStore = create<AppSettingsState>()(
         }),
         {
             name: 'streamflix-settings',
-            // Only persist the settings object, not loading state
             partialize: (state) => ({ settings: state.settings }),
+            // Apply theme immediately when store rehydrates from localStorage
+            onRehydrateStorage: () => (state) => {
+                if (state) applyTheme(state.settings.theme)
+            },
         }
     )
 )
 
-// Apply dark theme to document on store initialization
-document.documentElement.classList.add('dark')
+// Apply theme on cold start (before rehydration completes)
+applyTheme(useAppSettingsStore.getState().settings.theme)
 
 // React to auth changes
 useAuthStore.subscribe(
@@ -138,9 +167,9 @@ useAuthStore.subscribe(
             useAppSettingsStore.getState().fetchSettings()
         } else {
             useAppSettingsStore.setState({ settings: defaultSettings, loading: false })
+            applyTheme(defaultSettings.theme)
         }
     }
 )
 
-// Drop-in replacement for the old context hook — no component changes needed.
 export const useAppSettings = useAppSettingsStore

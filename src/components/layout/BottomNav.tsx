@@ -43,8 +43,7 @@ export function BottomNav() {
                             {isActive && (
                                 <motion.div
                                     layoutId="bottomNavActiveTab"
-                                    className="absolute inset-0 bg-white/10 rounded-2xl z-[-1] border border-white/5"
-                                    initial={false}
+                                    className="absolute inset-0 bg-white/10 rounded-2xl z-[-1] border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]" initial={false}
                                     transition={{ type: "spring", stiffness: 500, damping: 30 }}
                                 />
                             )}
@@ -53,7 +52,8 @@ export function BottomNav() {
                             <div className={`relative transition-transform duration-300 ${isActive ? 'scale-110' : ''}`}>
                                 <Icon
                                     className="w-5 h-5 md:w-6 md:h-6"
-                                    strokeWidth={isActive ? 2.5 : 2}
+                                    strokeWidth={isActive ? 2.5 : 1.8}
+                                    color={isActive ? 'white' : 'rgba(255,255,255,0.4)'}
                                 />
                             </div>
 

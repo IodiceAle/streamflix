@@ -160,7 +160,8 @@ export function HeroCarousel({
                     {/* Title */}
                     <motion.h1
                         variants={itemVariants}
-                        className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white max-w-4xl leading-[1.1] tracking-tight text-shadow-lg"
+                        className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 
+               font-black text-white max-w-4xl leading-[1.0] tracking-[-0.03em] text-shadow-lg"
                     >
                         {title}
                     </motion.h1>

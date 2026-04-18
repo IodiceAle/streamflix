@@ -52,20 +52,23 @@ export function ContentRow({
     return (
         <div className="relative group/row py-4">
             {/* Header */}
-            <div className="flex items-center justify-between px-4 md:px-8 mb-4">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white tracking-tight">
-                    {title}
-                </h2>
+            <div className="flex items-end justify-between px-4 md:px-8 mb-4">
+                <div>
+                    {/* derive a subtitle from the title, e.g. "🔥 Trending Now" → "Trending" */}
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-0.5">
+                        {type === 'movie' ? 'Movies' : type === 'tv' ? 'TV Shows' : 'Content'}
+                    </p>
+                    <h2 className="text-lg sm:text-xl md:text-2xl font-black text-white tracking-tight leading-none">
+                        {title}
+                    </h2>
+                </div>
                 {showSeeAll && (
-                    <Link
-                        to={seeAllPath}
-                        className="group/link flex items-center gap-1 text-sm text-brand hover:text-brand-light transition-colors font-semibold"
-                    >
-                        <span>See All</span>
-                        <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
+                    <Link to={seeAllPath} className="text-xs text-white/30 hover:text-white transition-colors font-medium">
+                        See all →
                     </Link>
                 )}
             </div>
+
 
             {/* Scroll container */}
             <div className="relative">

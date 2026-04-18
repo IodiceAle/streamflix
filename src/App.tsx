@@ -61,7 +61,7 @@ function App() {
                         }
                     />
                     <Route
-                        path="watch/tv/:id/:season/:episode"
+                        path="watch/:type/:id/:season/:episode"
                         element={
                             <ProtectedRoute>
                                 <PageWrapper><Watch /></PageWrapper>
