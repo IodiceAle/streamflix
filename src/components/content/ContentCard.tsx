@@ -31,7 +31,6 @@ export function ContentCard({
     const [imageLoaded, setImageLoaded] = useState(false)
     const [isHovered, setIsHovered] = useState(false)
 
-    // 14 days is the industry-standard "new" window
     const isNew = releaseDate
         ? (Date.now() - new Date(releaseDate).getTime()) < 14 * 24 * 60 * 60 * 1000
         : false
@@ -100,21 +99,30 @@ export function ContentCard({
                     </div>
                 )}
 
-                {/* New badge */}
+                {/* New badge — only on desktop (mobile shows the + button here) */}
                 {isNew && (
-                    <div className="absolute top-2 right-2 px-1.5 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded uppercase tracking-wider">
+                    <div className="hidden md:block absolute top-2 right-2 px-1.5 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded uppercase tracking-wider">
                         New
                     </div>
                 )}
 
-                {/* Bottom gradient — always present for readability */}
+                {/* Mobile-only list button — always visible since the hover overlay is hidden on mobile */}
+                <button
+                    onClick={handleListToggle}
+                    className="md:hidden absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+                    aria-label={inList ? 'Remove from My List' : 'Add to My List'}
+                >
+                    {inList ? (
+                        <Check className="w-4 h-4 text-brand" />
+                    ) : (
+                        <Plus className="w-4 h-4 text-white" />
+                    )}
+                </button>
+
+                {/* Bottom gradient */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
 
-                {/*
-                  Interactive overlay — desktop hover only.
-                  On mobile the card tap → detail, and detail has all actions.
-                  Hiding on mobile removes the permanently-cluttered look.
-                */}
+                {/* Desktop hover overlay */}
                 {showOverlay && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 transition-all duration-300 opacity-0 md:group-hover/card:opacity-100">
                         <button
@@ -139,11 +147,7 @@ export function ContentCard({
                     </div>
                 )}
 
-                {/*
-                  Title strip — always visible on mobile, hover-only on desktop.
-                  Uses `md:opacity-0 md:group-hover/card:opacity-100` so mobile
-                  users can read titles without hovering.
-                */}
+                {/* Title strip */}
                 <div className="absolute bottom-0 left-0 right-0 p-2 md:p-3 transition-opacity duration-300 md:opacity-0 md:group-hover/card:opacity-100">
                     <p className="text-white text-[11px] md:text-xs lg:text-sm font-semibold line-clamp-2 text-shadow">
                         {title}

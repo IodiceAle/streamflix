@@ -16,7 +16,6 @@ export default function Watch() {
 
     const [iframeLoaded, setIframeLoaded] = useState(false)
     const [isMarkedWatched, setIsMarkedWatched] = useState(false)
-    // Controls auto-hide: visible on load, hidden after 3s of no interaction
     const [controlsVisible, setControlsVisible] = useState(true)
     const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -47,10 +46,17 @@ export default function Watch() {
     const existingProgress = getProgress(tmdbId, isMovie ? 'movie' : 'tv', seasonNum, episodeNum)
     const alreadyCompleted = existingProgress?.completed || false
 
-    // Pass stored progress seconds so the player can resume from where the user left off
-    const embedUrl = isMovie
-        ? getMovieEmbedUrl(tmdbId, existingProgress?.progress_seconds || undefined)
-        : getTVEmbedUrl(tmdbId, seasonNum || 1, episodeNum || 1, existingProgress?.progress_seconds || undefined)
+    // Compute the embed URL ONCE on mount — never recompute after that.
+    // Without this, the store updating (e.g. Supabase fetch completing) would
+    // change `existingProgress`, recompute the URL, and force an iframe reload
+    // mid-playback, which caused TV shows to appear to never start playing.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const embedUrl = useMemo(
+        () => isMovie
+            ? getMovieEmbedUrl(tmdbId, existingProgress?.progress_seconds || undefined)
+            : getTVEmbedUrl(tmdbId, seasonNum || 1, episodeNum || 1, existingProgress?.progress_seconds || undefined),
+        [] // intentionally empty — see comment above
+    )
 
     // Auto-hide controls logic
     const resetHideTimer = useCallback(() => {
@@ -66,21 +72,67 @@ export default function Watch() {
         }
     }, [resetHideTimer])
 
+    // Create/update the "started watching" entry when details load.
+    // Preserves existing progress — never overwrites with 0.
     useEffect(() => {
         if (!details) return
+        const currentProgress = getProgress(tmdbId, isMovie ? 'movie' : 'tv', seasonNum, episodeNum)
         updateProgress({
             tmdb_id: tmdbId,
             type: isMovie ? 'movie' : 'tv',
             season: seasonNum,
             episode: episodeNum,
-            progress_seconds: existingProgress?.progress_seconds || 0,
-            duration_seconds: existingProgress?.duration_seconds || 0,
+            progress_seconds: currentProgress?.progress_seconds ?? 0,
+            duration_seconds: currentProgress?.duration_seconds ?? 0,
             title: 'title' in details ? details.title : details.name,
             poster_path: details.poster_path || undefined,
             backdrop_path: details.backdrop_path || undefined,
         })
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [details, tmdbId])
+
+    // Track real playback progress via vixsrc.to postMessage events.
+    // Throttled to one Supabase write every 10 s.
+    const lastProgressSave = useRef(0)
+    useEffect(() => {
+        const handleMessage = (event: MessageEvent) => {
+            if (event.data?.type !== 'PLAYER_EVENT') return
+            const { event: playerEvent, currentTime, duration } = (event.data.data ?? {}) as {
+                event?: string
+                currentTime?: number
+                duration?: number
+            }
+
+            if (playerEvent === 'timeupdate' && currentTime && currentTime > 10 && duration && duration > 0) {
+                const now = Date.now()
+                if (now - lastProgressSave.current > 10_000) {
+                    lastProgressSave.current = now
+                    updateProgress({
+                        tmdb_id: tmdbId,
+                        type: isMovie ? 'movie' : 'tv',
+                        season: seasonNum,
+                        episode: episodeNum,
+                        progress_seconds: Math.floor(currentTime),
+                        duration_seconds: Math.floor(duration),
+                        title: title || undefined,
+                        poster_path: details?.poster_path || undefined,
+                        backdrop_path: details?.backdrop_path || undefined,
+                    })
+                }
+            }
+
+            if (playerEvent === 'ended') {
+                markAsWatched(tmdbId, isMovie ? 'movie' : 'tv', seasonNum, episodeNum)
+                if (!isMarkedWatched && !alreadyCompleted) {
+                    setIsMarkedWatched(true)
+                    success(isMovie ? `${title} marked as watched!` : `S${seasonNum}:E${episodeNum} marked as watched!`)
+                }
+            }
+        }
+
+        window.addEventListener('message', handleMessage)
+        return () => window.removeEventListener('message', handleMessage)
+    }, [tmdbId, isMovie, seasonNum, episodeNum, updateProgress, markAsWatched, title, details, isMarkedWatched, alreadyCompleted, success])
 
     const hasNextEpisode = useMemo(() => {
         if (isMovie || !seasonDetails?.episodes || !episodeNum) return false
@@ -173,7 +225,7 @@ export default function Watch() {
                 </div>
             )}
 
-            {/* Video iframe — pointer-events-none on the wrapper so clicks reach our overlay */}
+            {/* Video iframe */}
             <iframe
                 src={embedUrl}
                 className="w-full h-full border-0"

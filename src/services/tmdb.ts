@@ -53,12 +53,13 @@ async function fetchTMDB<T>(endpoint: string, params: Record<string, string> = {
     return response.json()
 }
 
-// Trending
 export const getTrending = async (
     mediaType: 'all' | 'movie' | 'tv' = 'all',
     timeWindow: 'day' | 'week' = 'day'
 ): Promise<{ results: TMDBContent[] }> => {
-    return fetchTMDB(`/trending/${mediaType}/${timeWindow}`)
+    const data = await fetchTMDB<{ results: TMDBContent[] }>(`/trending/${mediaType}/${timeWindow}`)
+    data.results = data.results.filter((item) => item.media_type !== 'person')
+    return data
 }
 
 // Popular
