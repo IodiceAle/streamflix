@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { ContentCard } from './ContentCard'
 import type { TMDBMovie, TMDBTVShow, TMDBContent } from '@/types'
 
