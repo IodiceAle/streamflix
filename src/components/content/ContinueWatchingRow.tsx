@@ -64,6 +64,12 @@ function ContinueWatchingCard({
                     src={backdropPath
                         ? getBackdropUrl(backdropPath, 'w300')
                         : getImageUrl(posterPath, 'w342')}
+                    srcSet={backdropPath
+                        ? undefined
+                        : `${getImageUrl(posterPath, 'w185')} 185w, ${getImageUrl(posterPath, 'w342')} 342w, ${getImageUrl(posterPath, 'w500')} 500w`}
+                    sizes={backdropPath
+                        ? undefined
+                        : "(max-width: 640px) 130px, (max-width: 768px) 145px, 180px"}
                     alt={title}
                     className="w-full h-full object-cover"
                 />

@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Navigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Play, Plus, Check, Share2, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
+import { Play, Plus, Check, Share2, ChevronDown, ChevronUp, ExternalLink, Film } from 'lucide-react'
 import {
     getMovieDetails,
     getTVDetails,
     getSeasonDetails,
+    getCollection,
     getBackdropUrl,
+    getImageUrl,
     getStillUrl,
 } from '@/services/tmdb'
 import { useMyList } from '@/store/useMyListStore'
@@ -45,6 +47,21 @@ export default function Detail() {
         queryFn: () => getSeasonDetails(Number(id), selectedSeason),
         enabled: !isInvalidRoute && !isMovie && !!id,
     })
+
+    const collectionId = isMovie ? (details as TMDBMovieDetails | undefined)?.belongs_to_collection?.id : undefined
+
+    const { data: collection } = useQuery({
+        queryKey: ['collection', collectionId],
+        queryFn: () => getCollection(collectionId!),
+        enabled: !!collectionId,
+    })
+
+    // Sort collection parts chronologically
+    const collectionParts = collection?.parts
+        ? [...collection.parts].sort((a, b) =>
+            (a.release_date || '').localeCompare(b.release_date || '')
+        )
+        : []
 
     if (isInvalidRoute) return <Navigate to="/" replace />
     if (isLoading || !details) return <DetailSkeleton />
@@ -107,10 +124,6 @@ export default function Detail() {
                 <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/60 to-transparent" />
             </div>
 
-            {/*
-              Content — constrained width so text is readable on wide screens.
-              Hero stays full-bleed above, this section centers itself.
-            */}
             <div className="relative -mt-32 z-10 max-w-4xl mx-auto px-4 space-y-6 pb-24">
                 {/* Title */}
                 <h1 className="text-3xl sm:text-4xl font-bold">{title}</h1>
@@ -211,6 +224,62 @@ export default function Detail() {
                     </div>
                 )}
 
+                {/* Collection / Saga */}
+                {collection && collectionParts.length > 1 && (
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                            <Film className="w-5 h-5 text-brand flex-shrink-0" />
+                            <h2 className="text-xl font-semibold">{collection.name}</h2>
+                            <span className="text-sm text-text-muted">
+                                {collectionParts.length} films
+                            </span>
+                        </div>
+
+                        {collection.overview && (
+                            <p className="text-sm text-text-muted leading-relaxed">
+                                {collection.overview}
+                            </p>
+                        )}
+
+                        <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
+                            {collectionParts.map((film, index) => {
+                                const isCurrent = film.id === numericId
+                                return (
+                                    <button
+                                        key={film.id}
+                                        onClick={() => !isCurrent && navigate(`/detail/movie/${film.id}`)}
+                                        className={`flex-shrink-0 w-28 text-left group ${isCurrent ? 'cursor-default' : 'cursor-pointer'}`}
+                                    >
+                                        <div className={`relative aspect-poster rounded-lg overflow-hidden bg-surface-card ring-2 transition-all ${isCurrent ? 'ring-brand' : 'ring-transparent group-hover:ring-white/30'}`}>
+                                            <img
+                                                src={getImageUrl(film.poster_path, 'w185')}
+                                                alt={film.title}
+                                                className="w-full h-full object-cover"
+                                                loading="lazy"
+                                            />
+                                            {isCurrent && (
+                                                <div className="absolute inset-0 bg-brand/20 flex items-end justify-center pb-2">
+                                                    <span className="text-[10px] font-bold text-white bg-brand px-2 py-0.5 rounded-full">
+                                                        Watching
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <p className="mt-1.5 text-xs font-medium text-white line-clamp-2 leading-tight">
+                                            {index + 1}. {film.title}
+                                        </p>
+                                        {film.release_date && (
+                                            <p className="text-[11px] text-text-muted mt-0.5">
+                                                {new Date(film.release_date).getFullYear()}
+                                            </p>
+                                        )}
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    </div>
+                )}
+
                 {/* Episodes (TV Only) */}
                 {tvDetails?.seasons && (
                     <div className="space-y-4">
@@ -294,10 +363,9 @@ export default function Detail() {
                         </div>
                     </div>
                 )}
-
-                {/* Similar Content — break out of the max-w container for full-width rows */}
             </div>
 
+            {/* Similar / More Like This — full-width outside the constrained container */}
             {details.similar?.results?.length > 0 && (
                 <ContentRow
                     title="More Like This"

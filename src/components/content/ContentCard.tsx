@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { Play, Plus, Check, Star } from 'lucide-react'
 import { getImageUrl } from '@/services/tmdb'
 import { useMyList } from '@/store/useMyListStore'
@@ -57,23 +56,18 @@ export function ContentCard({
     }
 
     return (
-        <motion.div
-            className="group/card relative cursor-pointer w-full h-full rounded-xl"
+        <div
+            className="group/card relative cursor-pointer w-full h-full rounded-xl transition-transform duration-200 hover:-translate-y-2"
             onClick={handleClick}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => e.key === 'Enter' && handleClick()}
-            whileHover={{ y: -8 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
         >
             {/* Glow — desktop hover only */}
-            <motion.div
-                className="absolute -inset-2 bg-brand/40 rounded-xl blur-xl z-0"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: isHovered ? 0.6 : 0 }}
-                transition={{ duration: 0.3 }}
+            <div
+                className={`absolute -inset-2 bg-brand/40 rounded-xl blur-xl z-0 transition-opacity duration-300 ${isHovered ? 'opacity-60' : 'opacity-0'}`}
             />
 
             <div className="relative aspect-poster overflow-hidden rounded-xl z-10 bg-surface-card border border-white/5">
@@ -81,6 +75,8 @@ export function ContentCard({
 
                 <img
                     src={getImageUrl(posterPath, 'w342')}
+                    srcSet={`${getImageUrl(posterPath, 'w185')} 185w, ${getImageUrl(posterPath, 'w342')} 342w, ${getImageUrl(posterPath, 'w500')} 500w`}
+                    sizes="(max-width: 640px) 130px, (max-width: 768px) 145px, 180px"
                     alt={title}
                     loading="lazy"
                     width={342}
@@ -164,6 +160,6 @@ export function ContentCard({
                     </div>
                 )}
             </div>
-        </motion.div>
+        </div>
     )
 }

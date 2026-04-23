@@ -9,7 +9,7 @@ export function ScrollToTop() {
         if (navigationType !== 'POP') {
             window.scrollTo(0, 0)
         }
-    }, [pathname, navigationType])
+    }, [pathname])
 
     return null
 }

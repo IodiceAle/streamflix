@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import { ReactNode } from 'react'
 
 interface PageWrapperProps {
@@ -8,14 +7,8 @@ interface PageWrapperProps {
 
 export function PageWrapper({ children, className = '' }: PageWrapperProps) {
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
-            className={`w-full h-full ${className}`}
-        >
+        <div className={`w-full h-full animate-fade-in-up ${className}`}>
             {children}
-        </motion.div>
+        </div>
     )
 }

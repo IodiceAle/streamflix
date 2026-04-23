@@ -160,6 +160,20 @@ export const getTVGenres = async (): Promise<{ genres: TMDBGenre[] }> => {
     return fetchTMDB('/genre/tv/list')
 }
 
+// Collections (movie sagas / franchises e.g. Star Wars, MCU)
+export interface TMDBCollection {
+    id: number
+    name: string
+    overview: string
+    poster_path: string | null
+    backdrop_path: string | null
+    parts: TMDBMovie[]
+}
+
+export const getCollection = async (collectionId: number): Promise<TMDBCollection> => {
+    return fetchTMDB(`/collection/${collectionId}`)
+}
+
 // Utility to normalize content
 export const normalizeContent = (
     item: TMDBMovie | TMDBTVShow,

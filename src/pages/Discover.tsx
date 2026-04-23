@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
+import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { SlidersHorizontal, X, ChevronDown, Loader2 } from 'lucide-react'
 import { discoverMovies, discoverTVShows, getMovieGenres, getTVGenres } from '@/services/tmdb'
 import { ContentCard } from '@/components/content/ContentCard'
@@ -136,6 +137,27 @@ export default function Discover() {
     const isLoading = moviesLoading || tvLoading
     const isFetchingMore = isFetchingNextMovies || isFetchingNextTV
     const hasMore = contentType === 'movie' ? hasNextMovies : contentType === 'tv' ? hasNextTV : hasNextMovies || hasNextTV
+
+    const [cols, setCols] = useState(2)
+
+    useEffect(() => {
+        const updateCols = () => {
+            const w = window.innerWidth
+            if (w >= 1280) setCols(5)
+            else if (w >= 1024) setCols(4)
+            else if (w >= 640) setCols(3)
+            else setCols(2)
+        }
+        updateCols()
+        window.addEventListener('resize', updateCols)
+        return () => window.removeEventListener('resize', updateCols)
+    }, [])
+
+    const rowVirtualizer = useWindowVirtualizer({
+        count: Math.ceil(results.length / cols),
+        estimateSize: () => cols === 2 ? 300 : 380,
+        overscan: 4,
+    })
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -402,19 +424,37 @@ export default function Discover() {
                         </div>
                     ) : (
                         <>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                                {results.map((item, index) => {
-                                    const isMovieItem = 'title' in item
+                            <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
+                                {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                                    const rowItems = results.slice(virtualRow.index * cols, (virtualRow.index + 1) * cols)
                                     return (
-                                        <ContentCard
-                                            key={`${isMovieItem ? 'movie' : 'tv'}-${item.id}-${index}`}
-                                            id={item.id}
-                                            type={isMovieItem ? 'movie' : 'tv'}
-                                            title={isMovieItem ? item.title : item.name}
-                                            posterPath={item.poster_path}
-                                            rating={item.vote_average}
-                                            releaseDate={isMovieItem ? item.release_date : item.first_air_date}
-                                        />
+                                        <div
+                                            key={virtualRow.index}
+                                            style={{
+                                                position: 'absolute',
+                                                top: 0,
+                                                left: 0,
+                                                width: '100%',
+                                                height: `${virtualRow.size}px`,
+                                                transform: `translateY(${virtualRow.start}px)`,
+                                            }}
+                                            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 pb-3"
+                                        >
+                                            {rowItems.map((item, index) => {
+                                                const isMovieItem = 'title' in item
+                                                return (
+                                                    <ContentCard
+                                                        key={`${isMovieItem ? 'movie' : 'tv'}-${item.id}-${index}`}
+                                                        id={item.id}
+                                                        type={isMovieItem ? 'movie' : 'tv'}
+                                                        title={isMovieItem ? item.title : item.name}
+                                                        posterPath={item.poster_path}
+                                                        rating={item.vote_average}
+                                                        releaseDate={isMovieItem ? item.release_date : item.first_air_date}
+                                                    />
+                                                )
+                                            })}
+                                        </div>
                                     )
                                 })}
                             </div>
