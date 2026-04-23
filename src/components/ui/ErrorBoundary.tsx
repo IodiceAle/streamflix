@@ -1,5 +1,6 @@
 import { Component, type ReactNode } from 'react'
 import { AlertCircle, RefreshCw } from 'lucide-react'
+import { Sentry } from '@/services/sentry'
 
 interface ErrorBoundaryProps {
     children: ReactNode
@@ -9,24 +10,30 @@ interface ErrorBoundaryProps {
 interface ErrorBoundaryState {
     hasError: boolean
     error: Error | null
+    eventId: string | null
 }
 
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     constructor(props: ErrorBoundaryProps) {
         super(props)
-        this.state = { hasError: false, error: null }
+        this.state = { hasError: false, error: null, eventId: null }
     }
 
-    static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
         return { hasError: true, error }
     }
 
     componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
         if (import.meta.env.DEV) console.error('ErrorBoundary caught an error:', error, errorInfo)
+
+        const eventId = Sentry.captureException(error, {
+            contexts: { react: { componentStack: errorInfo.componentStack } },
+        })
+        this.setState({ eventId })
     }
 
     handleReset = () => {
-        this.setState({ hasError: false, error: null })
+        this.setState({ hasError: false, error: null, eventId: null })
     }
 
     render() {
@@ -50,6 +57,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                         {this.state.error && (
                             <p className="text-xs text-text-muted mb-6 px-4 py-3 bg-surface-card rounded-lg font-mono break-all">
                                 {this.state.error.message}
+                            </p>
+                        )}
+                        {this.state.eventId && (
+                            <p className="text-xs text-text-muted mb-4">
+                                Error ID: <span className="font-mono">{this.state.eventId}</span>
                             </p>
                         )}
                         <div className="flex gap-3 justify-center">

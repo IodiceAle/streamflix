@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { sentryVitePlugin } from '@sentry/vite-plugin'
 import path from 'path'
 
 // https://vite.dev/config/
@@ -40,40 +41,20 @@ export default defineConfig({
                 ]
             },
             workbox: {
-                // FIX 1: Activate updated SW immediately — without these two flags,
-                // a new service worker sits in "waiting" state until the user closes
-                // every open tab. Users on the app indefinitely never get updates.
                 skipWaiting: true,
                 clientsClaim: true,
-
-                // FIX 2: Delete caches from old SW versions on activation.
-                // Without this, stale caches accumulate indefinitely in storage.
                 cleanupOutdatedCaches: true,
-
-                // FIX 3: Serve the app shell for any navigation request while offline.
-                // Without this, a hard-refresh or direct URL visit offline shows a
-                // browser "no internet" error instead of the app.
                 navigateFallback: '/index.html',
-
-                // FIX 4: Raise the per-file precache limit.
-                // Default is 2 MB. Large lazy-loaded JS chunks (e.g. the Watch page)
-                // are silently skipped if they exceed it — the app partially works
-                // offline but some pages fail to load.
-                maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
-
+                maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
                 navigationPreload: true,
                 globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-
                 runtimeCaching: [
                     {
                         urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
                         handler: 'StaleWhileRevalidate',
                         options: {
                             cacheName: 'google-fonts-stylesheets',
-                            expiration: {
-                                maxEntries: 10,
-                                maxAgeSeconds: 60 * 60 * 24 * 365
-                            }
+                            expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 }
                         }
                     },
                     {
@@ -81,10 +62,7 @@ export default defineConfig({
                         handler: 'CacheFirst',
                         options: {
                             cacheName: 'google-fonts-webfonts',
-                            expiration: {
-                                maxEntries: 30,
-                                maxAgeSeconds: 60 * 60 * 24 * 365
-                            },
+                            expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
                             cacheableResponse: { statuses: [200] }
                         }
                     },
@@ -93,10 +71,7 @@ export default defineConfig({
                         handler: 'StaleWhileRevalidate',
                         options: {
                             cacheName: 'tmdb-api-cache',
-                            expiration: {
-                                maxEntries: 100,
-                                maxAgeSeconds: 60 * 60 * 24
-                            },
+                            expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 },
                             cacheableResponse: { statuses: [200] }
                         }
                     },
@@ -105,30 +80,17 @@ export default defineConfig({
                         handler: 'CacheFirst',
                         options: {
                             cacheName: 'tmdb-image-cache',
-                            expiration: {
-                                maxEntries: 500,
-                                maxAgeSeconds: 60 * 60 * 24 * 30
-                            },
+                            expiration: { maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 30 },
                             cacheableResponse: { statuses: [200] }
                         }
                     },
-
-                    // FIX 5: Cache Supabase REST and Auth reads with NetworkFirst.
-                    // Without this, any DB or auth call made while offline throws a
-                    // network error and the app's data stores return empty/broken state.
-                    // NetworkFirst tries the network and falls back to cache — reads
-                    // work offline, writes fail gracefully (stores already handle this
-                    // with their own optimistic-update + rollback pattern).
                     {
                         urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/.*/i,
                         handler: 'NetworkFirst',
                         options: {
                             cacheName: 'supabase-rest-cache',
                             networkTimeoutSeconds: 5,
-                            expiration: {
-                                maxEntries: 50,
-                                maxAgeSeconds: 60 * 60 * 24
-                            },
+                            expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 },
                             cacheableResponse: { statuses: [200] }
                         }
                     },
@@ -138,17 +100,31 @@ export default defineConfig({
                         options: {
                             cacheName: 'supabase-auth-cache',
                             networkTimeoutSeconds: 5,
-                            expiration: {
-                                maxEntries: 10,
-                                maxAgeSeconds: 60 * 60 // 1 hour — auth tokens rotate
-                            },
+                            expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 },
                             cacheableResponse: { statuses: [200] }
                         }
                     }
                 ]
             }
-        })
+        }),
+
+        // Upload source maps to Sentry at build time so production errors have
+        // readable stack traces. Only runs when SENTRY_AUTH_TOKEN is present —
+        // local dev and CI builds without the token skip this step silently.
+        sentryVitePlugin({
+            org: process.env.SENTRY_ORG,
+            project: process.env.SENTRY_PROJECT,
+            authToken: process.env.SENTRY_AUTH_TOKEN,
+            telemetry: false,
+            silent: !process.env.SENTRY_AUTH_TOKEN,
+        }),
     ],
+
+    build: {
+        // Required for Sentry to match source maps to minified bundles
+        sourcemap: true,
+    },
+
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src')
