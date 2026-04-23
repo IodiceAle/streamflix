@@ -45,7 +45,7 @@ export function ContentCard({
             if (inList) {
                 removeFromList(id, type)
             } else {
-                addToList(id, type, { title })
+                addToList(id, type, { title, posterPath: posterPath ?? undefined })
             }
         },
         [inList, id, type, addToList, removeFromList, title]
