@@ -225,6 +225,15 @@ export default function Watch() {
                 </div>
             )}
 
+            {!controlsVisible && (
+                <div
+                    className="absolute inset-0 z-[15]"
+                    onClick={resetHideTimer}
+                    onMouseMove={resetHideTimer}
+                    onTouchStart={resetHideTimer}
+                />
+            )}
+
             {/* Video iframe */}
             <iframe
                 src={embedUrl}

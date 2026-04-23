@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams, useNavigate, Navigate } from 'react-router-dom'
+import { useParams, useNavigate, Navigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Play, Plus, Check, Share2, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
 import {
@@ -19,7 +19,8 @@ export default function Detail() {
     const { type, id } = useParams<{ type: 'movie' | 'tv'; id: string }>()
     const navigate = useNavigate()
     const { isInList, addToList, removeFromList } = useMyList()
-    const [selectedSeason, setSelectedSeason] = useState(1)
+    const [searchParams, setSearchParams] = useSearchParams()
+    const selectedSeason = Number(searchParams.get('season')) || 1
     const [expandedEpisode, setExpandedEpisode] = useState<number | null>(null)
     const [showTrailerModal, setShowTrailerModal] = useState(false)
 
@@ -217,7 +218,11 @@ export default function Detail() {
                             <h2 className="text-xl font-semibold">Episodes</h2>
                             <select
                                 value={selectedSeason}
-                                onChange={(e) => setSelectedSeason(Number(e.target.value))}
+                                onChange={(e) => {
+                                    const next = new URLSearchParams(searchParams)
+                                    next.set('season', e.target.value)
+                                    setSearchParams(next, { replace: true })
+                                }}
                                 className="px-3 py-2 bg-surface-card rounded text-white text-sm"
                             >
                                 {tvDetails.seasons
