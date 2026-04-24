@@ -67,8 +67,6 @@ export const useContinueWatchingStore = create<ContinueWatchingState>()((set, ge
             last_watched_at: new Date().toISOString(),
         }
 
-        let existingId: string | undefined
-
         // Optimistic update — move updated item to front
         set((s) => {
             const idx = s.continueWatching.findIndex(
@@ -79,7 +77,6 @@ export const useContinueWatchingStore = create<ContinueWatchingState>()((set, ge
                     (item.episode ?? null) === (data.episode ?? null)
             )
             if (idx >= 0) {
-                existingId = s.continueWatching[idx].id
                 const updated = [...s.continueWatching]
                 updated[idx] = { ...updated[idx], ...progressData }
                 const [item] = updated.splice(idx, 1)
@@ -95,18 +92,11 @@ export const useContinueWatchingStore = create<ContinueWatchingState>()((set, ge
         }
 
         try {
-            if (existingId && existingId.length > 30) {
-                const { error } = await supabase
-                    .from('continue_watching')
-                    .update(dbPayload)
-                    .eq('id', existingId)
-                if (error) throw error
-            } else {
-                const { error } = await supabase
-                    .from('continue_watching')
-                    .insert(dbPayload)
-                if (error) throw error
-            }
+            // Atomic upsert — no fragile insert-vs-update branching
+            const { error } = await supabase
+                .from('continue_watching')
+                .upsert(dbPayload, { onConflict: 'user_id,tmdb_id,type,season,episode' })
+            if (error) throw error
         } catch (error) {
             if (import.meta.env.DEV) console.error('Error updating progress:', error)
             get().fetchContinueWatching()

@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -50,20 +51,11 @@ export default defineConfig({
                 globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
                 runtimeCaching: [
                     {
-                        urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-                        handler: 'StaleWhileRevalidate',
-                        options: {
-                            cacheName: 'google-fonts-stylesheets',
-                            expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 }
-                        }
-                    },
-                    {
-                        urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+                        urlPattern: /^\/.*\.(js|css|html|ico|png|svg|woff2)$/,
                         handler: 'CacheFirst',
                         options: {
-                            cacheName: 'google-fonts-webfonts',
-                            expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
-                            cacheableResponse: { statuses: [200] }
+                            cacheName: 'static-assets',
+                            expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 365 },
                         }
                     },
                     {
@@ -123,6 +115,22 @@ export default defineConfig({
     build: {
         // Required for Sentry to match source maps to minified bundles
         sourcemap: true,
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    vendor: ['react', 'react-dom', 'react-router-dom'],
+                    query: ['@tanstack/react-query', '@tanstack/react-query-persist-client', '@tanstack/query-sync-storage-persister'],
+                    motion: ['framer-motion'],
+                    supabase: ['@supabase/supabase-js'],
+                }
+            }
+        }
+    },
+
+    test: {
+        globals: true,
+        environment: 'jsdom',
+        setupFiles: ['./vitest.setup.ts'],
     },
 
     resolve: {

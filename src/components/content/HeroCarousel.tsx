@@ -63,11 +63,14 @@ export function HeroCarousel({
     const currentIndex = ((page % items.length) + items.length) % items.length
 
     const paginate = useCallback((newDirection: number) => {
-        setPage([page + newDirection, newDirection])
-    }, [page])
+        // Functional updater avoids capturing stale `page` in the closure,
+        // making this callback stable (empty dep array) so the auto-play
+        // timer never needlessly re-registers.
+        setPage(([p]) => [p + newDirection, newDirection])
+    }, [])
 
     const goToSlide = useCallback((index: number) => {
-        setPage([index, index > currentIndex ? 1 : -1])
+        setPage(([, prevDir]) => [index, index > currentIndex ? 1 : prevDir < 0 ? -1 : 1])
     }, [currentIndex])
 
     const handleDragEnd = (_e: MouseEvent | TouchEvent | PointerEvent, { offset, velocity }: PanInfo) => {
@@ -84,6 +87,16 @@ export function HeroCarousel({
         const timer = setInterval(() => paginate(1), interval)
         return () => clearInterval(timer)
     }, [autoPlay, isPaused, interval, items.length, paginate])
+
+    // Keyboard navigation: left/right arrow keys cycle slides
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'ArrowLeft') paginate(-1)
+            if (e.key === 'ArrowRight') paginate(1)
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [paginate])
 
     if (!items || items.length === 0) return null
 

@@ -25,6 +25,7 @@ function PageFallback() {
     )
 }
 
+
 function App() {
     const location = useLocation()
 
@@ -78,4 +79,3 @@ function App() {
 }
 
 export default App
-

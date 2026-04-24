@@ -1,8 +1,9 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Play, Plus, Check, Star } from 'lucide-react'
 import { getImageUrl } from '@/services/tmdb'
 import { useMyList } from '@/store/useMyListStore'
+import { useToast } from '@/components/ui/Toast'
 
 interface ContentCardProps {
     id: number
@@ -27,12 +28,16 @@ export function ContentCard({
 }: ContentCardProps) {
     const navigate = useNavigate()
     const { isInList, addToList, removeFromList } = useMyList()
+    const { success } = useToast()
     const [imageLoaded, setImageLoaded] = useState(false)
     const [isHovered, setIsHovered] = useState(false)
 
-    const isNew = releaseDate
-        ? (Date.now() - new Date(releaseDate).getTime()) < 14 * 24 * 60 * 60 * 1000
-        : false
+    const isNew = useMemo(
+        () => releaseDate
+            ? (Date.now() - new Date(releaseDate).getTime()) < 14 * 24 * 60 * 60 * 1000
+            : false,
+        [releaseDate]
+    )
 
     const inList = isInList(id, type)
 
@@ -43,11 +48,13 @@ export function ContentCard({
             e.stopPropagation()
             if (inList) {
                 removeFromList(id, type)
+                success(`Removed from My List`)
             } else {
                 addToList(id, type, { title, posterPath: posterPath ?? undefined })
+                success(`Added to My List`)
             }
         },
-        [inList, id, type, addToList, removeFromList, title]
+        [inList, id, type, addToList, removeFromList, title, posterPath, success]
     )
 
     const handlePlayClick = (e: React.MouseEvent) => {
@@ -62,6 +69,7 @@ export function ContentCard({
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             role="button"
+            aria-label={`View details for ${title}`}
             tabIndex={0}
             onKeyDown={(e) => e.key === 'Enter' && handleClick()}
         >

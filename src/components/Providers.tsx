@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useRef, type ReactNode } from 'react'
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClient } from '@tanstack/react-query'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
@@ -15,23 +15,34 @@ import '@/store/useMyListStore'
 import '@/store/useContinueWatchingStore'
 import '@/store/useAppSettingsStore'
 
-const persister = createSyncStoragePersister({ storage: window.localStorage })
-
-const queryClient = new QueryClient({
-    defaultOptions: {
-        queries: {
-            staleTime: 1000 * 60 * 60,   // 1 hour
-            gcTime: 1000 * 60 * 60 * 24,      // 24 hours
-            retry: 2,
-            refetchOnWindowFocus: false,
+function makeQueryClient() {
+    return new QueryClient({
+        defaultOptions: {
+            queries: {
+                staleTime: 1000 * 60 * 60,        // 1 hour
+                gcTime: 1000 * 60 * 60 * 24,      // 24 hours
+                retry: 2,
+                refetchOnWindowFocus: false,
+            },
         },
-    },
-})
+    })
+}
 
 export function Providers({ children }: { children: ReactNode }) {
+    // useRef keeps the same instance alive across HMR cycles so the cache
+    // is not dropped on every hot reload in development.
+    const queryClientRef = useRef<QueryClient | null>(null)
+    if (!queryClientRef.current) queryClientRef.current = makeQueryClient()
+
+    const persisterRef = useRef<ReturnType<typeof createSyncStoragePersister> | null>(null)
+    if (!persisterRef.current) persisterRef.current = createSyncStoragePersister({ storage: window.localStorage })
+
     return (
         <ErrorBoundary>
-            <PersistQueryClientProvider client={queryClient} persistOptions={{ persister, maxAge: 1000 * 60 * 60 * 24 }}>
+            <PersistQueryClientProvider
+                client={queryClientRef.current}
+                persistOptions={{ persister: persisterRef.current, maxAge: 1000 * 60 * 60 * 24 }}
+            >
                 <BrowserRouter>
                     <ToastProvider>
                         <ScrollToTop />

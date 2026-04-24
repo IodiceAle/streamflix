@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
+import React from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
@@ -155,7 +156,9 @@ export default function Discover() {
 
     const rowVirtualizer = useWindowVirtualizer({
         count: Math.ceil(results.length / cols),
-        estimateSize: () => cols === 2 ? 300 : 380,
+        // +12px accounts for the gap-3 (12px) between rows so cumulative
+        // height matches reality and reduces scroll-position drift.
+        estimateSize: () => cols === 2 ? 312 : 392,
         overscan: 4,
     })
 
@@ -219,108 +222,24 @@ export default function Discover() {
 
     const availableSortOptions = contentType === 'tv' ? sortOptions.filter((s) => !s.movieOnly) : sortOptions
 
-    // The filter panel content is shared between sidebar (desktop) and sheet (mobile)
-    const FilterPanel = (
-        <div className="space-y-5">
-            <FilterSection title="Sort by">
-                <div className="relative">
-                    <select value={sortBy} onChange={(e) => updateParam('sort', e.target.value === 'popularity.desc' ? null : e.target.value)}
-                        className="w-full appearance-none px-4 py-3 bg-surface-card rounded-xl text-white pr-10 focus:ring-2 focus:ring-brand focus:outline-none text-sm">
-                        {availableSortOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
-                </div>
-            </FilterSection>
-
-            <FilterSection title="Genres">
-                <div className="flex flex-wrap gap-2">
-                    {genres.map((genre) => (
-                        <button key={genre.id} onClick={() => toggleGenre(genre.id)}
-                            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${selectedGenres.includes(String(genre.id))
-                                ? 'bg-brand/15 text-red-400 border-brand/40'
-                                : 'bg-surface-card text-text-secondary border-white/8 hover:text-white hover:border-white/20'}`}>
-                            {genre.name}
-                        </button>
-                    ))}
-                </div>
-            </FilterSection>
-
-            <FilterSection title="Release year">
-                <div className="grid grid-cols-2 gap-3">
-                    {(['yearFrom', 'yearTo'] as const).map((key) => (
-                        <div key={key}>
-                            <label className="block text-xs text-text-muted mb-1.5">{key === 'yearFrom' ? 'From' : 'To'}</label>
-                            <div className="relative">
-                                <select value={key === 'yearFrom' ? yearFrom : yearTo}
-                                    onChange={(e) => updateParam(key, e.target.value || null)}
-                                    className="w-full appearance-none px-3 py-2.5 bg-surface-card rounded-xl text-white text-sm focus:ring-2 focus:ring-brand focus:outline-none">
-                                    <option value="">Any</option>
-                                    {years.map((y) => <option key={y} value={y}>{y}</option>)}
-                                </select>
-                                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-muted pointer-events-none" />
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </FilterSection>
-
-            <FilterSection title="Rating">
-                <div className="grid grid-cols-2 gap-3">
-                    <div>
-                        <label className="block text-xs text-text-muted mb-1.5">Min ★</label>
-                        <div className="flex flex-wrap gap-1.5">
-                            {ratingValues.slice(0, 9).map((v) => (
-                                <button key={v} onClick={() => updateParam('minRating', v > 0 ? String(v) : null)}
-                                    className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all ${minRating === v ? 'bg-brand text-white' : 'bg-surface-card text-text-secondary hover:text-white'}`}>
-                                    {v === 0 ? 'Any' : v}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-xs text-text-muted mb-1.5">Max ★</label>
-                        <div className="flex flex-wrap gap-1.5">
-                            {ratingValues.slice(2).map((v) => (
-                                <button key={v} onClick={() => updateParam('maxRating', v < 10 ? String(v) : null)}
-                                    className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all ${maxRating === v ? 'bg-brand text-white' : 'bg-surface-card text-text-secondary hover:text-white'}`}>
-                                    {v === 10 ? 'Any' : v}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </FilterSection>
-
-            <FilterSection title="Minimum votes">
-                <div className="flex flex-wrap gap-2">
-                    {minVoteOptions.map((o) => (
-                        <button key={o.value} onClick={() => updateParam('minVotes', o.value > 0 ? String(o.value) : null)}
-                            className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all ${minVotes === o.value ? 'bg-brand text-white' : 'bg-surface-card text-text-secondary hover:text-white'}`}>
-                            {o.label}
-                        </button>
-                    ))}
-                </div>
-            </FilterSection>
-
-            <FilterSection title="Original language">
-                <div className="relative">
-                    <select value={language} onChange={(e) => updateParam('language', e.target.value || null)}
-                        className="w-full appearance-none px-4 py-3 bg-surface-card rounded-xl text-white pr-10 focus:ring-2 focus:ring-brand focus:outline-none text-sm">
-                        {languages.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
-                </div>
-            </FilterSection>
-
-            {activeChips.length > 0 && (
-                <button onClick={clearFilters}
-                    className="w-full flex items-center justify-center gap-2 py-3 text-brand hover:bg-brand/10 rounded-xl transition-colors font-medium text-sm">
-                    <X className="w-4 h-4" />
-                    Clear all filters
-                </button>
-            )}
-        </div>
-    )
+    // Props bundle for the shared filter panel (used in both sidebar and mobile sheet)
+    const filterPanelProps: FilterPanelProps = {
+        genres,
+        selectedGenres,
+        toggleGenre,
+        sortBy,
+        updateParam,
+        availableSortOptions,
+        yearFrom,
+        yearTo,
+        minRating,
+        maxRating,
+        minVotes,
+        language,
+        activeChips,
+        clearFilters,
+        contentType,
+    }
 
     return (
         <div className="min-h-screen bg-surface pt-4 pb-24">
@@ -376,7 +295,7 @@ export default function Discover() {
                 {/* Mobile filter sheet */}
                 {showMobileFilters && (
                     <div className="md:hidden mt-4 p-5 bg-surface-elevated/50 backdrop-blur-sm rounded-2xl border border-white/5 animate-fade-in">
-                        {FilterPanel}
+                        <FilterPanel {...filterPanelProps} />
                     </div>
                 )}
             </div>
@@ -400,7 +319,7 @@ export default function Discover() {
                                 </span>
                             )}
                         </div>
-                        {FilterPanel}
+                        <FilterPanel {...filterPanelProps} />
                     </div>
                 </aside>
 
@@ -477,3 +396,165 @@ function FilterSection({ title, children }: { title: string; children: React.Rea
         </div>
     )
 }
+
+// ─── FilterPanel ─────────────────────────────────────────────────────────────
+// Extracted from a JSX variable to a proper component so React can memoize it
+// and skip re-renders when none of its props change.
+
+interface FilterPanelProps {
+    genres: { id: number; name: string }[]
+    selectedGenres: string[]
+    toggleGenre: (id: number) => void
+    sortBy: SortOption
+    updateParam: (key: string, value: string | null) => void
+    availableSortOptions: typeof sortOptions
+    yearFrom: string
+    yearTo: string
+    minRating: number
+    maxRating: number
+    minVotes: number
+    language: string
+    activeChips: { label: string; onRemove: () => void }[]
+    clearFilters: () => void
+    contentType: ContentType
+}
+
+const FilterPanel = React.memo(function FilterPanel({
+    genres,
+    selectedGenres,
+    toggleGenre,
+    sortBy,
+    updateParam,
+    availableSortOptions,
+    yearFrom,
+    yearTo,
+    minRating,
+    maxRating,
+    minVotes,
+    language,
+    activeChips,
+    clearFilters,
+}: FilterPanelProps) {
+    return (
+        <div className="space-y-5">
+            <FilterSection title="Sort by">
+                <div className="relative">
+                    <select
+                        value={sortBy}
+                        onChange={(e) => updateParam('sort', e.target.value === 'popularity.desc' ? null : e.target.value)}
+                        className="w-full appearance-none px-4 py-3 bg-surface-card rounded-xl text-white pr-10 focus:ring-2 focus:ring-brand focus:outline-none text-sm"
+                    >
+                        {availableSortOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+                </div>
+            </FilterSection>
+
+            <FilterSection title="Genres">
+                <div className="flex flex-wrap gap-2">
+                    {genres.map((genre) => (
+                        <button
+                            key={genre.id}
+                            onClick={() => toggleGenre(genre.id)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                                selectedGenres.includes(String(genre.id))
+                                    ? 'bg-brand/15 text-red-400 border-brand/40'
+                                    : 'bg-surface-card text-text-secondary border-white/8 hover:text-white hover:border-white/20'
+                            }`}
+                        >
+                            {genre.name}
+                        </button>
+                    ))}
+                </div>
+            </FilterSection>
+
+            <FilterSection title="Release year">
+                <div className="grid grid-cols-2 gap-3">
+                    {(['yearFrom', 'yearTo'] as const).map((key) => (
+                        <div key={key}>
+                            <label className="block text-xs text-text-muted mb-1.5">{key === 'yearFrom' ? 'From' : 'To'}</label>
+                            <div className="relative">
+                                <select
+                                    value={key === 'yearFrom' ? yearFrom : yearTo}
+                                    onChange={(e) => updateParam(key, e.target.value || null)}
+                                    className="w-full appearance-none px-3 py-2.5 bg-surface-card rounded-xl text-white text-sm focus:ring-2 focus:ring-brand focus:outline-none"
+                                >
+                                    <option value="">Any</option>
+                                    {years.map((y) => <option key={y} value={y}>{y}</option>)}
+                                </select>
+                                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-muted pointer-events-none" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </FilterSection>
+
+            <FilterSection title="Rating">
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                        <label className="block text-xs text-text-muted mb-1.5">Min ★</label>
+                        <div className="flex flex-wrap gap-1.5">
+                            {ratingValues.slice(0, 9).map((v) => (
+                                <button key={v} onClick={() => updateParam('minRating', v > 0 ? String(v) : null)}
+                                    className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all ${
+                                        minRating === v ? 'bg-brand text-white' : 'bg-surface-card text-text-secondary hover:text-white'
+                                    }`}>
+                                    {v === 0 ? 'Any' : v}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-xs text-text-muted mb-1.5">Max ★</label>
+                        <div className="flex flex-wrap gap-1.5">
+                            {ratingValues.slice(2).map((v) => (
+                                <button key={v} onClick={() => updateParam('maxRating', v < 10 ? String(v) : null)}
+                                    className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all ${
+                                        maxRating === v ? 'bg-brand text-white' : 'bg-surface-card text-text-secondary hover:text-white'
+                                    }`}>
+                                    {v === 10 ? 'Any' : v}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </FilterSection>
+
+            <FilterSection title="Minimum votes">
+                <div className="flex flex-wrap gap-2">
+                    {minVoteOptions.map((o) => (
+                        <button key={o.value} onClick={() => updateParam('minVotes', o.value > 0 ? String(o.value) : null)}
+                            className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                                minVotes === o.value ? 'bg-brand text-white' : 'bg-surface-card text-text-secondary hover:text-white'
+                            }`}>
+                            {o.label}
+                        </button>
+                    ))}
+                </div>
+            </FilterSection>
+
+            <FilterSection title="Original language">
+                <div className="relative">
+                    <select
+                        value={language}
+                        onChange={(e) => updateParam('language', e.target.value || null)}
+                        className="w-full appearance-none px-4 py-3 bg-surface-card rounded-xl text-white pr-10 focus:ring-2 focus:ring-brand focus:outline-none text-sm"
+                    >
+                        {languages.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+                </div>
+            </FilterSection>
+
+            {activeChips.length > 0 && (
+                <button
+                    onClick={clearFilters}
+                    className="w-full flex items-center justify-center gap-2 py-3 text-brand hover:bg-brand/10 rounded-xl transition-colors font-medium text-sm"
+                >
+                    <X className="w-4 h-4" />
+                    Clear all filters
+                </button>
+            )}
+        </div>
+    )
+})

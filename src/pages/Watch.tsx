@@ -147,10 +147,15 @@ export default function Watch() {
 
     if (isInvalidRoute) return <Navigate to="/" replace />
 
-    const handleMarkAsWatched = async () => {
-        await markAsWatched(tmdbId, isMovie ? 'movie' : 'tv', seasonNum, episodeNum)
-        setIsMarkedWatched(true)
-        success(isMovie ? `${title} marked as watched!` : `S${seasonNum}:E${episodeNum} marked as watched!`)
+    const handleMarkAsWatched = () => {
+        markAsWatched(tmdbId, isMovie ? 'movie' : 'tv', seasonNum, episodeNum)
+            .then(() => {
+                setIsMarkedWatched(true)
+                success(isMovie ? `${title} marked as watched!` : `S${seasonNum}:E${episodeNum} marked as watched!`)
+            })
+            .catch((err) => {
+                if (import.meta.env.DEV) console.error('Error marking as watched:', err)
+            })
     }
 
     return (
@@ -225,18 +230,10 @@ export default function Watch() {
                 </div>
             )}
 
-            {!controlsVisible && (
-                <div
-                    className="absolute inset-0 z-[15]"
-                    onClick={resetHideTimer}
-                    onMouseMove={resetHideTimer}
-                    onTouchStart={resetHideTimer}
-                />
-            )}
-
             {/* Video iframe */}
             <iframe
                 src={embedUrl}
+                title={title ? `Watch ${title}` : 'Video player'}
                 className="w-full h-full border-0"
                 referrerPolicy="origin"
                 allowFullScreen

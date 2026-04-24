@@ -103,12 +103,19 @@ export default function Detail() {
     }
 
     const handleShare = async () => {
-        if (navigator.share) {
-            await navigator.share({
-                title,
-                text: `Check out ${title} on StreamFlix`,
-                url: window.location.href,
-            })
+        try {
+            if (navigator.share) {
+                await navigator.share({
+                    title,
+                    text: `Check out ${title} on StreamFlix`,
+                    url: window.location.href,
+                })
+            }
+        } catch (err) {
+            // AbortError = user dismissed the share sheet (not a real error)
+            if (err instanceof Error && err.name !== 'AbortError' && import.meta.env.DEV) {
+                console.error('Share failed:', err)
+            }
         }
     }
 
@@ -286,6 +293,7 @@ export default function Detail() {
                         <div className="flex items-center justify-between">
                             <h2 className="text-xl font-semibold">Episodes</h2>
                             <select
+                                aria-label="Select season"
                                 value={selectedSeason}
                                 onChange={(e) => {
                                     const next = new URLSearchParams(searchParams)
@@ -321,6 +329,7 @@ export default function Detail() {
                                                 src={getStillUrl(episode.still_path, 'w300')}
                                                 alt=""
                                                 className="w-full h-full object-cover"
+                                                loading="lazy"
                                             />
                                             <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                                                 <Play className="w-8 h-8 text-white fill-white" />
@@ -343,6 +352,8 @@ export default function Detail() {
                                                         expandedEpisode === episode.id ? null : episode.id
                                                     )
                                                 }
+                                                aria-expanded={expandedEpisode === episode.id}
+                                                aria-controls={`overview-${episode.id}`}
                                                 className="flex items-center gap-1 text-xs text-text-muted hover:text-white"
                                             >
                                                 {expandedEpisode === episode.id ? (
@@ -352,7 +363,7 @@ export default function Detail() {
                                                 )}
                                             </button>
                                             {expandedEpisode === episode.id && (
-                                                <p className="mt-2 text-sm text-text-secondary">
+                                                <p id={`overview-${episode.id}`} className="mt-2 text-sm text-text-secondary">
                                                     {episode.overview}
                                                 </p>
                                             )}

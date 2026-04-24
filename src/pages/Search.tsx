@@ -130,6 +130,7 @@ export default function Search() {
                             onFocus={() => setIsFocused(true)}
                             onBlur={() => setIsFocused(false)}
                             placeholder="Search movies & TV shows..."
+                            aria-label="Search movies and TV shows"
                             className="w-full pl-14 pr-14 py-5 glass rounded-2xl text-white placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand text-lg font-medium"
                             maxLength={200}
                         />
