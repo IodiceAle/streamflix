@@ -1,71 +1,91 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { ToastProvider, useToast } from '@/components/ui/Toast';
-import { useEffect } from 'react';
+import { describe, it, expect, vi } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { useEffect } from 'react'
+import { ToastProvider, useToast } from '@/components/ui/Toast'
 
-// A helper component to trigger toasts
-function ToastTestComponent({ type, message }: { type: 'success' | 'error' | 'info', message: string }) {
-    const toastContext = useToast();
-    
-    useEffect(() => {
-        if (type === 'success') toastContext.success(message);
-        if (type === 'error') toastContext.error(message);
-        if (type === 'info') toastContext.info(message);
-    }, [type, message, toastContext]);
+// Helper: mounts a component inside ToastProvider and fires one toast on mount
+function renderToast(type: 'success' | 'error' | 'info', message: string) {
+    function Trigger() {
+        const toast = useToast()
+        useEffect(() => {
+            toast[type](message)
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [])
+        return null
+    }
 
-    return <div>Test Component</div>;
+    return render(
+        <ToastProvider>
+            <Trigger />
+        </ToastProvider>
+    )
 }
 
-describe('ToastProvider and useToast', () => {
-    it('throws error if useToast is used outside provider', () => {
-        // Prevent console.error from cluttering the test output
-        const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
-        
-        expect(() => render(<ToastTestComponent type="info" message="Test" />)).toThrow('useToast must be used within a ToastProvider');
-        
-        consoleError.mockRestore();
-    });
+describe('useToast', () => {
+    it('throws when used outside ToastProvider', () => {
+        const consoleError = vi.spyOn(console, 'error').mockImplementation(() => { })
+        function Bad() {
+            useToast()
+            return null
+        }
+        expect(() => render(<Bad />)).toThrow('useToast must be used within a ToastProvider')
+        consoleError.mockRestore()
+    })
+})
 
-    it('renders a success toast', async () => {
+describe('ToastProvider', () => {
+    it('shows a success toast', async () => {
+        renderToast('success', 'Saved successfully')
+        expect(await screen.findByText('Saved successfully')).toBeInTheDocument()
+    })
+
+    it('shows an error toast', async () => {
+        renderToast('error', 'Something went wrong')
+        expect(await screen.findByText('Something went wrong')).toBeInTheDocument()
+    })
+
+    it('shows an info toast', async () => {
+        renderToast('info', 'Did you know?')
+        expect(await screen.findByText('Did you know?')).toBeInTheDocument()
+    })
+
+    it('removes a toast when the close button is clicked', async () => {
+        const user = userEvent.setup()
+        renderToast('info', 'Dismiss me')
+
+        const message = await screen.findByText('Dismiss me')
+        expect(message).toBeInTheDocument()
+
+        const closeBtn = message.closest('div')?.querySelector('button')
+        expect(closeBtn).toBeInTheDocument()
+        await user.click(closeBtn!)
+
+        await waitFor(() =>
+            expect(screen.queryByText('Dismiss me')).not.toBeInTheDocument()
+        )
+    })
+
+    it('stacks multiple toasts', async () => {
+        function Multi() {
+            const toast = useToast()
+            useEffect(() => {
+                toast.success('First')
+                toast.error('Second')
+                toast.info('Third')
+                // eslint-disable-next-line react-hooks/exhaustive-deps
+            }, [])
+            return null
+        }
+
         render(
             <ToastProvider>
-                <ToastTestComponent type="success" message="Success Message" />
+                <Multi />
             </ToastProvider>
-        );
-        
-        expect(await screen.findByText('Success Message')).toBeInTheDocument();
-    });
+        )
 
-    it('renders an error toast', async () => {
-        render(
-            <ToastProvider>
-                <ToastTestComponent type="error" message="Error Message" />
-            </ToastProvider>
-        );
-        
-        expect(await screen.findByText('Error Message')).toBeInTheDocument();
-    });
-
-    it('removes toast when close button is clicked', async () => {
-        const user = userEvent.setup();
-        
-        render(
-            <ToastProvider>
-                <ToastTestComponent type="info" message="Close Me" />
-            </ToastProvider>
-        );
-        
-        const toastMessage = await screen.findByText('Close Me');
-        expect(toastMessage).toBeInTheDocument();
-        
-        // Find close button - it's the button inside the toast container
-        const closeButton = toastMessage.parentElement?.querySelector('button');
-        expect(closeButton).toBeInTheDocument();
-        
-        await user.click(closeButton!);
-        
-        // Should be removed
-        expect(screen.queryByText('Close Me')).not.toBeInTheDocument();
-    });
-});
+        expect(await screen.findByText('First')).toBeInTheDocument()
+        expect(await screen.findByText('Second')).toBeInTheDocument()
+        expect(await screen.findByText('Third')).toBeInTheDocument()
+    })
+})

@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { useAuthStore } from '@/store/useAuthStore';
-import { supabase } from '@/services/supabase';
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { useAuthStore } from '@/store/useAuthStore'
+import { supabase } from '@/services/supabase'
+import type { Session, User } from '@supabase/supabase-js'
 
 vi.mock('@/services/supabase', () => ({
     supabase: {
@@ -8,41 +9,82 @@ vi.mock('@/services/supabase', () => ({
             signInWithPassword: vi.fn(),
             signOut: vi.fn(),
             getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
-            onAuthStateChange: vi.fn(),
-        }
-    }
-}));
+            onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
+        },
+    },
+}))
 
-describe('useAuthStore', () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
-        // Reset state
-        useAuthStore.setState({ user: null, session: null, loading: false });
-    });
+const mockUser = { id: 'user-123', email: 'test@example.com' } as User
+const mockSession = { user: mockUser, access_token: 'token' } as Session
 
-    it('should have initial state', () => {
-        const state = useAuthStore.getState();
-        expect(state.user).toBeNull();
-        expect(state.session).toBeNull();
-    });
+beforeEach(() => {
+    vi.clearAllMocks()
+    useAuthStore.setState({ user: null, session: null, loading: false })
+})
 
-    it('should sign in', async () => {
-        const mockResponse = { error: null };
-        vi.mocked(supabase.auth.signInWithPassword).mockResolvedValue(mockResponse as never);
+describe('useAuthStore — initial state', () => {
+    it('starts with no user', () => {
+        expect(useAuthStore.getState().user).toBeNull()
+    })
 
-        const state = useAuthStore.getState();
-        const result = await state.signIn('test@test.com', 'password');
+    it('starts with no session', () => {
+        expect(useAuthStore.getState().session).toBeNull()
+    })
+})
 
-        expect(supabase.auth.signInWithPassword).toHaveBeenCalledWith({ email: 'test@test.com', password: 'password' });
-        expect(result).toEqual(mockResponse);
-    });
+describe('useAuthStore — signIn', () => {
+    it('calls supabase with the provided credentials', async () => {
+        vi.mocked(supabase.auth.signInWithPassword).mockResolvedValue({ error: null } as never)
 
-    it('should sign out', async () => {
-        vi.mocked(supabase.auth.signOut).mockResolvedValue({ error: null });
+        await useAuthStore.getState().signIn('test@example.com', 'secret')
 
-        const state = useAuthStore.getState();
-        await state.signOut();
+        expect(supabase.auth.signInWithPassword).toHaveBeenCalledWith({
+            email: 'test@example.com',
+            password: 'secret',
+        })
+    })
 
-        expect(supabase.auth.signOut).toHaveBeenCalled();
-    });
-});
+    it('returns null error on success', async () => {
+        vi.mocked(supabase.auth.signInWithPassword).mockResolvedValue({ error: null } as never)
+
+        const result = await useAuthStore.getState().signIn('test@example.com', 'secret')
+
+        expect(result.error).toBeNull()
+    })
+
+    it('returns an error when credentials are invalid', async () => {
+        const authError = new Error('Invalid login credentials')
+        vi.mocked(supabase.auth.signInWithPassword).mockResolvedValue({ error: authError } as never)
+
+        const result = await useAuthStore.getState().signIn('bad@example.com', 'wrong')
+
+        expect(result.error).toBe(authError)
+    })
+})
+
+describe('useAuthStore — signOut', () => {
+    it('calls supabase.auth.signOut', async () => {
+        vi.mocked(supabase.auth.signOut).mockResolvedValue({ error: null })
+
+        await useAuthStore.getState().signOut()
+
+        expect(supabase.auth.signOut).toHaveBeenCalledOnce()
+    })
+})
+
+describe('useAuthStore — state updates', () => {
+    it('reflects a logged-in user after setState', () => {
+        useAuthStore.setState({ user: mockUser, session: mockSession })
+
+        expect(useAuthStore.getState().user).toEqual(mockUser)
+        expect(useAuthStore.getState().session).toEqual(mockSession)
+    })
+
+    it('clears user and session after logout setState', () => {
+        useAuthStore.setState({ user: mockUser, session: mockSession })
+        useAuthStore.setState({ user: null, session: null })
+
+        expect(useAuthStore.getState().user).toBeNull()
+        expect(useAuthStore.getState().session).toBeNull()
+    })
+})

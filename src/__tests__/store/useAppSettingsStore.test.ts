@@ -1,76 +1,104 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { useAppSettingsStore } from '@/store/useAppSettingsStore';
-import { useAuthStore } from '@/store/useAuthStore';
-import type { User } from '@supabase/supabase-js';
-import { supabase } from '@/services/supabase';
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { useAppSettingsStore } from '@/store/useAppSettingsStore'
+import { useAuthStore } from '@/store/useAuthStore'
+import type { User } from '@supabase/supabase-js'
+import { supabase } from '@/services/supabase'
 
 vi.mock('@/services/supabase', () => ({
     supabase: {
         auth: {
             getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
-            onAuthStateChange: vi.fn(),
+            onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
         },
         from: vi.fn(() => ({
-            select: vi.fn(() => ({
-                eq: vi.fn(() => ({
-                    single: vi.fn().mockResolvedValue({ data: null, error: null })
-                }))
-            })),
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            single: vi.fn().mockResolvedValue({ data: null, error: null }),
             insert: vi.fn().mockResolvedValue({ error: null }),
-            update: vi.fn(() => ({
-                eq: vi.fn().mockResolvedValue({ error: null })
-            }))
-        }))
-    }
-}));
+            update: vi.fn().mockReturnThis(),
+        })),
+    },
+}))
 
-describe('useAppSettingsStore', () => {
+const defaultSettings = {
+    theme: 'system',
+    language: 'en',
+    subtitle_language: 'en',
+    auto_play: true,
+    auto_play_next: true,
+    auto_play_previews: true,
+    data_saver: false,
+    default_quality: 'auto',
+    notifications: false,
+    username: '',
+    avatar_url: null,
+    email: '',
+} as const
+
+beforeEach(() => {
+    vi.clearAllMocks()
+    useAuthStore.setState({ user: null, session: null, loading: false })
+    useAppSettingsStore.setState({ settings: { ...defaultSettings }, loading: false })
+})
+
+describe('useAppSettingsStore — initial state', () => {
+    it('has the expected default theme', () => {
+        expect(useAppSettingsStore.getState().settings.theme).toBe('system')
+    })
+
+    it('has the expected default language', () => {
+        expect(useAppSettingsStore.getState().settings.language).toBe('en')
+    })
+
+    it('has auto_play enabled by default', () => {
+        expect(useAppSettingsStore.getState().settings.auto_play).toBe(true)
+    })
+})
+
+describe('useAppSettingsStore — updateSetting (no user)', () => {
+    it('updates a setting locally without touching Supabase', async () => {
+        await useAppSettingsStore.getState().updateSetting('theme', 'dark')
+
+        expect(useAppSettingsStore.getState().settings.theme).toBe('dark')
+        expect(supabase.from).not.toHaveBeenCalled()
+    })
+
+    it('can toggle auto_play off', async () => {
+        await useAppSettingsStore.getState().updateSetting('auto_play', false)
+        expect(useAppSettingsStore.getState().settings.auto_play).toBe(false)
+    })
+
+    it('can update default_quality', async () => {
+        await useAppSettingsStore.getState().updateSetting('default_quality', '1080p')
+        expect(useAppSettingsStore.getState().settings.default_quality).toBe('1080p')
+    })
+})
+
+describe('useAppSettingsStore — updateSettings (with user)', () => {
     beforeEach(() => {
-        vi.clearAllMocks();
-        // Reset state
-        useAppSettingsStore.setState({
-            settings: {
-                theme: 'system',
-                language: 'en',
-                subtitle_language: 'en',
-                auto_play: true,
-                auto_play_next: true,
-                auto_play_previews: true,
-                data_saver: false,
-                default_quality: 'auto',
-                notifications: false,
-                username: '',
-                avatar_url: null,
-                email: '',
-            },
-            loading: false
-        });
-    });
+        useAuthStore.setState({ user: { id: 'user-123' } as User })
+    })
 
-    it('should have initial settings', () => {
-        const { settings } = useAppSettingsStore.getState();
-        expect(settings.theme).toBe('system');
-        expect(settings.language).toBe('en');
-    });
+    it('updates the local store', async () => {
+        await useAppSettingsStore.getState().updateSettings({ theme: 'light' })
+        expect(useAppSettingsStore.getState().settings.theme).toBe('light')
+    })
 
-    it('should update a setting locally if user is not logged in', async () => {
-        const state = useAppSettingsStore.getState();
-        await state.updateSetting('theme', 'dark');
+    it('persists to Supabase when a user is logged in', async () => {
+        await useAppSettingsStore.getState().updateSettings({ theme: 'light' })
+        expect(supabase.from).toHaveBeenCalledWith('profiles')
+    })
 
-        const { settings } = useAppSettingsStore.getState();
-        expect(settings.theme).toBe('dark');
-        expect(supabase.from).not.toHaveBeenCalled();
-    });
+    it('can update multiple settings at once', async () => {
+        await useAppSettingsStore.getState().updateSettings({
+            theme: 'dark',
+            language: 'fr',
+            notifications: true,
+        })
 
-    it('should update settings locally and in supabase if user is logged in', async () => {
-        useAuthStore.setState({ user: { id: 'user-id', email: 'test@test.com' } as User });
-
-        const state = useAppSettingsStore.getState();
-        await state.updateSettings({ theme: 'light' });
-
-        const { settings } = useAppSettingsStore.getState();
-        expect(settings.theme).toBe('light');
-        
-        expect(supabase.from).toHaveBeenCalledWith('profiles');
-    });
-});
+        const { settings } = useAppSettingsStore.getState()
+        expect(settings.theme).toBe('dark')
+        expect(settings.language).toBe('fr')
+        expect(settings.notifications).toBe(true)
+    })
+})
