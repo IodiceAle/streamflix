@@ -236,7 +236,6 @@ export default function Watch() {
                 title={title ? `Watch ${title}` : 'Video player'}
                 className="w-full h-full border-0"
                 referrerPolicy="origin"
-                allowFullScreen
                 allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
                 onLoad={() => setIframeLoaded(true)}
             />

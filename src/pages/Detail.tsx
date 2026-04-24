@@ -398,7 +398,6 @@ export default function Detail() {
                             className="w-full h-full rounded"
                             sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
                             referrerPolicy="origin"
-                            allowFullScreen
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
                         />
                     </div>
