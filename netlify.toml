@@ -17,6 +17,7 @@
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+    Origin-Agent-Cluster = "?0"
     Referrer-Policy = "strict-origin-when-cross-origin" 
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
-    Content-Security-Policy = "default-src 'self'; worker-src 'self' blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' https://image.tmdb.org data:; connect-src 'self' https://api.themoviedb.org https://image.tmdb.org https://*.supabase.co wss://*.supabase.co https://*.ingest.de.sentry.io https://vixsrc.to; media-src 'self' https://vixsrc.to blob:; frame-src https://vixsrc.to https://www.youtube.com;"
+    Content-Security-Policy = "default-src 'self'; worker-src 'self' blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' https://image.tmdb.org data:; connect-src 'self' https://api.themoviedb.org https://image.tmdb.org https://*.supabase.co wss://*.supabase.co https://*.ingest.de.sentry.io https://vixsrc.to; media-src 'self' https://vixsrc.to blob:; frame-src https://vixsrc.to https://*.vixsrc.to https://www.youtube.com;

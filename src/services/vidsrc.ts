@@ -6,11 +6,10 @@ import { useAppSettingsStore } from '@/store/useAppSettingsStore'
 const VIXSRC_BASE = 'https://vixsrc.to'
 
 const getPlayerOptions = () => {
-    const { auto_play, language } = useAppSettingsStore.getState().settings
+    const { language } = useAppSettingsStore.getState().settings
     return {
         primaryColor: 'E50914',
         secondaryColor: '170000',
-        autoplay: String(auto_play),
         lang: language,
     }
 }

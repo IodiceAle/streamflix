@@ -7,7 +7,7 @@ import { SlidersHorizontal, X, ChevronDown, Loader2 } from 'lucide-react'
 import { discoverMovies, discoverTVShows, getMovieGenres, getTVGenres } from '@/services/tmdb'
 import { ContentCard } from '@/components/content/ContentCard'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody, SheetFooter } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody, SheetFooter } from '@/components/ui/Sheet'
 import type { TMDBMovie, TMDBTVShow } from '@/types'
 
 type ContentType = 'all' | 'movie' | 'tv'

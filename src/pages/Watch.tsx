@@ -14,10 +14,11 @@ export default function Watch() {
     const { updateProgress, markAsWatched, getProgress } = useContinueWatching()
     const { success } = useToast()
 
-    const [iframeLoaded, setIframeLoaded] = useState(false)
+    const [iframeLoaded, setIframeLoaded] = useState(true)
     const [isMarkedWatched, setIsMarkedWatched] = useState(false)
     const [controlsVisible, setControlsVisible] = useState(true)
     const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const iframeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     const isMovie = type === 'movie'
     const tmdbId = Number(id)
@@ -65,11 +66,11 @@ export default function Watch() {
     }, [])
 
     useEffect(() => {
-        resetHideTimer()
+        iframeTimerRef.current = setTimeout(() => setIframeLoaded(true), 5000)
         return () => {
-            if (hideTimerRef.current) clearTimeout(hideTimerRef.current)
+            if (iframeTimerRef.current) clearTimeout(iframeTimerRef.current)
         }
-    }, [resetHideTimer])
+    }, [])
 
     // Create/update the "started watching" entry when details load.
     // Preserves existing progress — never overwrites with 0.
@@ -237,7 +238,7 @@ export default function Watch() {
                 allowFullScreen
                 referrerPolicy="origin"
                 allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
-                onLoad={() => setIframeLoaded(true)}
+                onLoad={() => setTimeout(() => setIframeLoaded(true), 1000)}
             />
         </div>
     )
