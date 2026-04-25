@@ -54,7 +54,7 @@ export default function Watch() {
         () => isMovie
             ? getMovieEmbedUrl(tmdbId, existingProgress?.progress_seconds || undefined)
             : getTVEmbedUrl(tmdbId, seasonNum || 1, episodeNum || 1, existingProgress?.progress_seconds || undefined),
-        [isMovie, tmdbId, seasonNum, episodeNum] 
+        [isMovie, tmdbId, seasonNum, episodeNum]
     )
 
     // Auto-hide controls logic
@@ -233,8 +233,9 @@ export default function Watch() {
             <iframe
                 src={embedUrl}
                 title={title ? `Watch ${title}` : 'Video player'}
-                className="w-full h-full border-0"
+                className="w-full flex-1 min-h-0 border-0"
                 allowFullScreen
+                referrerPolicy="no-referrer"
                 allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
                 onLoad={() => setIframeLoaded(true)}
             />
