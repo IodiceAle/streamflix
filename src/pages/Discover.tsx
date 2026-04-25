@@ -7,6 +7,7 @@ import { SlidersHorizontal, X, ChevronDown, Loader2 } from 'lucide-react'
 import { discoverMovies, discoverTVShows, getMovieGenres, getTVGenres } from '@/services/tmdb'
 import { ContentCard } from '@/components/content/ContentCard'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody, SheetFooter } from '@/components/ui/sheet'
 import type { TMDBMovie, TMDBTVShow } from '@/types'
 
 type ContentType = 'all' | 'movie' | 'tv'
@@ -69,7 +70,6 @@ const languages = [
 
 export default function Discover() {
     const [searchParams, setSearchParams] = useSearchParams()
-    // Mobile: sheet toggle. Desktop: always visible as sidebar.
     const [showMobileFilters, setShowMobileFilters] = useState(false)
     const loadMoreRef = useRef<HTMLDivElement>(null)
 
@@ -156,8 +156,6 @@ export default function Discover() {
 
     const rowVirtualizer = useWindowVirtualizer({
         count: Math.ceil(results.length / cols),
-        // +12px accounts for the gap-3 (12px) between rows so cumulative
-        // height matches reality and reduces scroll-position drift.
         estimateSize: () => cols === 2 ? 312 : 392,
         overscan: 4,
     })
@@ -222,23 +220,10 @@ export default function Discover() {
 
     const availableSortOptions = contentType === 'tv' ? sortOptions.filter((s) => !s.movieOnly) : sortOptions
 
-    // Props bundle for the shared filter panel (used in both sidebar and mobile sheet)
     const filterPanelProps: FilterPanelProps = {
-        genres,
-        selectedGenres,
-        toggleGenre,
-        sortBy,
-        updateParam,
-        availableSortOptions,
-        yearFrom,
-        yearTo,
-        minRating,
-        maxRating,
-        minVotes,
-        language,
-        activeChips,
-        clearFilters,
-        contentType,
+        genres, selectedGenres, toggleGenre, sortBy, updateParam,
+        availableSortOptions, yearFrom, yearTo, minRating, maxRating,
+        minVotes, language, activeChips, clearFilters, contentType,
     }
 
     return (
@@ -249,10 +234,10 @@ export default function Discover() {
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-text-secondary bg-clip-text text-transparent">
                         Discover
                     </h1>
-                    {/* Mobile-only filter toggle */}
+                    {/* Mobile-only filter toggle — now opens a Sheet */}
                     <button
-                        onClick={() => setShowMobileFilters(!showMobileFilters)}
-                        className={`md:hidden flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${showMobileFilters || activeChips.length > 0
+                        onClick={() => setShowMobileFilters(true)}
+                        className={`md:hidden flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${activeChips.length > 0
                             ? 'bg-brand text-white shadow-lg shadow-brand/25'
                             : 'bg-surface-card text-white hover:bg-surface-hover'}`}
                     >
@@ -291,21 +276,55 @@ export default function Discover() {
                         </button>
                     </div>
                 )}
-
-                {/* Mobile filter sheet */}
-                {showMobileFilters && (
-                    <div className="md:hidden mt-4 p-5 bg-surface-elevated/50 backdrop-blur-sm rounded-2xl border border-white/5 animate-fade-in">
-                        <FilterPanel {...filterPanelProps} />
-                    </div>
-                )}
             </div>
 
             {/*
+              Mobile filter Sheet — replaces the old inline toggle panel.
+              Sheet slides up from the bottom on mobile.
+            */}
+            <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
+                <SheetContent side="bottom" className="md:hidden max-h-[85vh] rounded-t-2xl" showCloseButton={false}>
+                    <SheetHeader>
+                        <div className="flex items-center justify-between">
+                            <SheetTitle>Filters</SheetTitle>
+                            <div className="flex items-center gap-2">
+                                {activeChips.length > 0 && (
+                                    <button
+                                        onClick={() => { clearFilters(); setShowMobileFilters(false) }}
+                                        className="text-xs text-brand hover:text-brand-light font-medium transition-colors"
+                                    >
+                                        Clear all
+                                    </button>
+                                )}
+                                <button
+                                    onClick={() => setShowMobileFilters(false)}
+                                    className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-colors"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    </SheetHeader>
+                    <SheetBody>
+                        <FilterPanel {...filterPanelProps} />
+                    </SheetBody>
+                    <SheetFooter>
+                        <button
+                            onClick={() => setShowMobileFilters(false)}
+                            className="w-full py-3 bg-brand text-white font-semibold rounded-xl hover:bg-brand-dark transition-colors active:scale-[0.98]"
+                        >
+                            Show Results
+                            {results.length > 0 && ` (${results.length}+)`}
+                        </button>
+                    </SheetFooter>
+                </SheetContent>
+            </Sheet>
+
+            {/*
               Desktop layout: sticky sidebar + scrollable results grid.
-              Mobile: no sidebar (filters are in the sheet above).
             */}
             <div className="md:flex md:gap-0 px-4">
-                {/* Desktop sidebar — sticky, always visible, no toggle needed */}
+                {/* Desktop sidebar */}
                 <aside className="hidden md:block w-64 flex-shrink-0 mr-6">
                     <div className="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto pr-2 pb-8 space-y-1 hide-scrollbar">
                         <div className="flex items-center justify-between mb-4">
@@ -388,6 +407,8 @@ export default function Discover() {
     )
 }
 
+// ── FilterPanel ───────────────────────────────────────────────────────────────
+
 function FilterSection({ title, children }: { title: string; children: React.ReactNode }) {
     return (
         <div>
@@ -396,10 +417,6 @@ function FilterSection({ title, children }: { title: string; children: React.Rea
         </div>
     )
 }
-
-// ─── FilterPanel ─────────────────────────────────────────────────────────────
-// Extracted from a JSX variable to a proper component so React can memoize it
-// and skip re-renders when none of its props change.
 
 interface FilterPanelProps {
     genres: { id: number; name: string }[]
@@ -420,20 +437,9 @@ interface FilterPanelProps {
 }
 
 const FilterPanel = React.memo(function FilterPanel({
-    genres,
-    selectedGenres,
-    toggleGenre,
-    sortBy,
-    updateParam,
-    availableSortOptions,
-    yearFrom,
-    yearTo,
-    minRating,
-    maxRating,
-    minVotes,
-    language,
-    activeChips,
-    clearFilters,
+    genres, selectedGenres, toggleGenre, sortBy, updateParam,
+    availableSortOptions, yearFrom, yearTo, minRating, maxRating,
+    minVotes, language, activeChips, clearFilters,
 }: FilterPanelProps) {
     return (
         <div className="space-y-5">
@@ -456,11 +462,10 @@ const FilterPanel = React.memo(function FilterPanel({
                         <button
                             key={genre.id}
                             onClick={() => toggleGenre(genre.id)}
-                            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                                selectedGenres.includes(String(genre.id))
-                                    ? 'bg-brand/15 text-red-400 border-brand/40'
-                                    : 'bg-surface-card text-text-secondary border-white/8 hover:text-white hover:border-white/20'
-                            }`}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${selectedGenres.includes(String(genre.id))
+                                ? 'bg-brand/15 text-red-400 border-brand/40'
+                                : 'bg-surface-card text-text-secondary border-white/8 hover:text-white hover:border-white/20'
+                                }`}
                         >
                             {genre.name}
                         </button>
@@ -496,9 +501,7 @@ const FilterPanel = React.memo(function FilterPanel({
                         <div className="flex flex-wrap gap-1.5">
                             {ratingValues.slice(0, 9).map((v) => (
                                 <button key={v} onClick={() => updateParam('minRating', v > 0 ? String(v) : null)}
-                                    className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all ${
-                                        minRating === v ? 'bg-brand text-white' : 'bg-surface-card text-text-secondary hover:text-white'
-                                    }`}>
+                                    className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all ${minRating === v ? 'bg-brand text-white' : 'bg-surface-card text-text-secondary hover:text-white'}`}>
                                     {v === 0 ? 'Any' : v}
                                 </button>
                             ))}
@@ -509,9 +512,7 @@ const FilterPanel = React.memo(function FilterPanel({
                         <div className="flex flex-wrap gap-1.5">
                             {ratingValues.slice(2).map((v) => (
                                 <button key={v} onClick={() => updateParam('maxRating', v < 10 ? String(v) : null)}
-                                    className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all ${
-                                        maxRating === v ? 'bg-brand text-white' : 'bg-surface-card text-text-secondary hover:text-white'
-                                    }`}>
+                                    className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all ${maxRating === v ? 'bg-brand text-white' : 'bg-surface-card text-text-secondary hover:text-white'}`}>
                                     {v === 10 ? 'Any' : v}
                                 </button>
                             ))}
@@ -524,9 +525,7 @@ const FilterPanel = React.memo(function FilterPanel({
                 <div className="flex flex-wrap gap-2">
                     {minVoteOptions.map((o) => (
                         <button key={o.value} onClick={() => updateParam('minVotes', o.value > 0 ? String(o.value) : null)}
-                            className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-                                minVotes === o.value ? 'bg-brand text-white' : 'bg-surface-card text-text-secondary hover:text-white'
-                            }`}>
+                            className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all ${minVotes === o.value ? 'bg-brand text-white' : 'bg-surface-card text-text-secondary hover:text-white'}`}>
                             {o.label}
                         </button>
                     ))}

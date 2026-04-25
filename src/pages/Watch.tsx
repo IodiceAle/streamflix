@@ -46,16 +46,15 @@ export default function Watch() {
     const existingProgress = getProgress(tmdbId, isMovie ? 'movie' : 'tv', seasonNum, episodeNum)
     const alreadyCompleted = existingProgress?.completed || false
 
-    // Compute the embed URL ONCE on mount — never recompute after that.
-    // Without this, the store updating (e.g. Supabase fetch completing) would
-    // change `existingProgress`, recompute the URL, and force an iframe reload
-    // mid-playback, which caused TV shows to appear to never start playing.
+    // Compute the embed URL on mount or when the episode/movie changes.
+    // We intentionally omit `existingProgress` from dependencies because 
+    // the store updating during playback would force an iframe reload mid-playback.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const embedUrl = useMemo(
         () => isMovie
             ? getMovieEmbedUrl(tmdbId, existingProgress?.progress_seconds || undefined)
             : getTVEmbedUrl(tmdbId, seasonNum || 1, episodeNum || 1, existingProgress?.progress_seconds || undefined),
-        [] // intentionally empty — see comment above
+        [isMovie, tmdbId, seasonNum, episodeNum] 
     )
 
     // Auto-hide controls logic
@@ -235,7 +234,7 @@ export default function Watch() {
                 src={embedUrl}
                 title={title ? `Watch ${title}` : 'Video player'}
                 className="w-full h-full border-0"
-                referrerPolicy="origin"
+                allowFullScreen
                 allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
                 onLoad={() => setIframeLoaded(true)}
             />
