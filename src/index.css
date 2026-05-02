@@ -7,7 +7,6 @@
 
 /* ============================================
    Runtime Theme Variables
-   These are swapped at paint-time for dark/light.
    ============================================ */
 :root {
     --brand: #E50914;
@@ -36,8 +35,23 @@
 }
 
 /* ============================================
-   Tailwind v4 Theme — static design tokens.
-   Replaces tailwind.config.js theme.extend.
+   Sonner toast CSS variable overrides
+   Must be at :root level so sonner picks them up.
+   ============================================ */
+:root {
+    --normal-bg: var(--surface-elevated);
+    --normal-border: rgba(255, 255, 255, 0.1);
+    --normal-text: #ffffff;
+    --success-bg: var(--surface-elevated);
+    --success-border: rgba(34, 197, 94, 0.3);
+    --success-text: #ffffff;
+    --error-bg: var(--surface-elevated);
+    --error-border: rgba(239, 68, 68, 0.3);
+    --error-text: #ffffff;
+}
+
+/* ============================================
+   Tailwind v4 Theme
    ============================================ */
 @theme {
     /* Typography */
@@ -82,10 +96,7 @@
 }
 
 /* ============================================
-   Dynamic color tokens — resolved at paint time
-   via CSS var() so dark/light switching works.
-   @theme inline: generated utilities emit var()
-   references instead of resolved values.
+   Dynamic color tokens
    ============================================ */
 @theme inline {
     --color-brand: var(--brand);
@@ -98,14 +109,11 @@
     --color-text-primary: var(--text-primary);
     --color-text-secondary: var(--text-secondary);
     --color-text-muted: var(--text-muted);
-    /* Shadow referencing a runtime var */
     --shadow-glow-brand: 0 0 25px var(--brand-dark);
 }
 
 /* ============================================
    Keyframes
-   Defined at root scope so @theme animations
-   and custom @layer utilities can both reference them.
    ============================================ */
 @keyframes skeleton-shimmer {
     0% {
@@ -179,6 +187,19 @@
     from {
         opacity: 0;
         transform: translateY(100%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* NEW — used by Sheet side="top" */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-100%);
     }
 
     to {
@@ -351,7 +372,6 @@
    ============================================ */
 @layer utilities {
 
-    /* Animation utilities use `forwards` fill mode which @theme --animate-* can't express */
     .animate-fade-in {
         animation: fadeIn 0.3s ease-out forwards;
     }
@@ -374,6 +394,11 @@
 
     .animate-slide-up {
         animation: slideUp 0.3s ease-out forwards;
+    }
+
+    /* Used by Sheet side="top" */
+    .animate-slide-down {
+        animation: slideDown 0.3s ease-out forwards;
     }
 }
 

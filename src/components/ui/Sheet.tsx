@@ -23,8 +23,7 @@ function SheetOverlay({ className, ...props }: React.ComponentProps<typeof Sheet
     return (
         <SheetPrimitive.Overlay
             className={cn(
-                'fixed inset-0 z-50 bg-black/70 backdrop-blur-sm',
-                'data-[state=open]:animate-fade-in data-[state=closed]:opacity-0 transition-opacity duration-300',
+                'fixed inset-0 z-50 bg-black/70 backdrop-blur-sm animate-fade-in',
                 className
             )}
             {...props}
@@ -33,10 +32,10 @@ function SheetOverlay({ className, ...props }: React.ComponentProps<typeof Sheet
 }
 
 const sideStyles: Record<string, string> = {
-    top: 'inset-x-0 top-0 border-b rounded-b-2xl data-[state=open]:animate-slide-down',
-    bottom: 'inset-x-0 bottom-0 border-t rounded-t-2xl data-[state=open]:animate-slide-up',
-    left: 'inset-y-0 left-0 h-full w-3/4 max-w-sm border-r rounded-r-2xl data-[state=open]:animate-slide-in-right',
-    right: 'inset-y-0 right-0 h-full w-3/4 max-w-sm border-l rounded-l-2xl data-[state=open]:animate-slide-in-right',
+    top: 'inset-x-0 top-0 border-b border-white/10 rounded-b-2xl animate-fade-in-up',
+    bottom: 'inset-x-0 bottom-0 border-t border-white/10 rounded-t-2xl animate-slide-up',
+    left: 'inset-y-0 left-0 h-full w-3/4 max-w-sm border-r border-white/10 rounded-r-2xl animate-slide-in-right',
+    right: 'inset-y-0 right-0 h-full w-3/4 max-w-sm border-l border-white/10 rounded-l-2xl animate-slide-in-right',
 }
 
 function SheetContent({
@@ -55,8 +54,7 @@ function SheetContent({
             <SheetPrimitive.Content
                 className={cn(
                     'fixed z-50 flex flex-col',
-                    'bg-surface-elevated border-white/10',
-                    'shadow-2xl transition ease-in-out duration-300',
+                    'bg-surface-elevated shadow-2xl',
                     'focus:outline-none',
                     sideStyles[side],
                     className

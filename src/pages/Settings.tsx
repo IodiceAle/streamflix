@@ -1,8 +1,12 @@
 import { useState } from 'react'
-import { Play, Bell, Info, ChevronRight, LogOut, User, Palette, Volume2, Check, Globe, Subtitles, Moon, Sun, Monitor } from 'lucide-react'
+import {
+    Play, Bell, Info, ChevronRight, LogOut, User,
+    Palette, Volume2, Check, Globe, Subtitles, Moon, Sun, Monitor,
+} from 'lucide-react'
 import { useAuth } from '@/store/useAuthStore'
 import { useAppSettings } from '@/store/useAppSettingsStore'
 import { Modal } from '@/components/ui/Modal'
+import { Switch } from '@/components/ui/switch'
 import type { AppSettings } from '@/store/useAppSettingsStore'
 
 type Quality = 'auto' | '1080p' | '720p' | '480p'
@@ -65,7 +69,7 @@ export default function Settings() {
                 <Section title="Account">
                     <SettingItem
                         icon={User}
-                        iconBg="bg-blue-500/20"
+                        iconBg="bg-blue-500/15"
                         iconColor="text-blue-400"
                         label={user ? 'Signed in as' : 'Guest'}
                         description={user?.email || 'Not logged in'}
@@ -76,7 +80,7 @@ export default function Settings() {
                 <Section title="Appearance">
                     <SettingButton
                         icon={Palette}
-                        iconBg="bg-purple-500/20"
+                        iconBg="bg-purple-500/15"
                         iconColor="text-purple-400"
                         label="Theme"
                         description={getThemeName(settings.theme)}
@@ -88,7 +92,7 @@ export default function Settings() {
                 <Section title="Language & Audio">
                     <SettingButton
                         icon={Globe}
-                        iconBg="bg-cyan-500/20"
+                        iconBg="bg-cyan-500/15"
                         iconColor="text-cyan-400"
                         label="Audio Language"
                         description={getLanguageName(settings.language)}
@@ -96,7 +100,7 @@ export default function Settings() {
                     />
                     <SettingButton
                         icon={Subtitles}
-                        iconBg="bg-orange-500/20"
+                        iconBg="bg-orange-500/15"
                         iconColor="text-orange-400"
                         label="Subtitles"
                         description={getSubtitleName(settings.subtitle_language)}
@@ -107,32 +111,32 @@ export default function Settings() {
 
                 {/* Playback */}
                 <Section title="Playback">
-                    <SettingToggle
+                    <SettingSwitch
                         icon={Play}
-                        iconBg="bg-brand/20"
+                        iconBg="bg-brand/15"
                         iconColor="text-brand"
                         label="Auto-play"
                         description={settings.auto_play ? 'Videos start automatically' : 'Videos start paused'}
-                        value={settings.auto_play}
-                        onChange={(v) => updateSetting('auto_play', v)}
+                        checked={settings.auto_play}
+                        onCheckedChange={(v) => updateSetting('auto_play', v)}
                     />
                     <SettingButton
                         icon={Volume2}
-                        iconBg="bg-green-500/20"
+                        iconBg="bg-green-500/15"
                         iconColor="text-green-400"
                         label="Video Quality"
                         description={qualityLabels[settings.default_quality]}
                         onClick={() => setShowQualityModal(true)}
                         border
                     />
-                    <SettingToggle
+                    <SettingSwitch
                         icon={Bell}
-                        iconBg="bg-yellow-500/20"
+                        iconBg="bg-yellow-500/15"
                         iconColor="text-yellow-400"
                         label="Notifications"
                         description={settings.notifications ? 'Enabled' : 'Disabled'}
-                        value={settings.notifications}
-                        onChange={(v) => updateSetting('notifications', v)}
+                        checked={settings.notifications}
+                        onCheckedChange={(v) => updateSetting('notifications', v)}
                         border
                     />
                 </Section>
@@ -141,7 +145,7 @@ export default function Settings() {
                 <Section title="About">
                     <SettingItem
                         icon={Info}
-                        iconBg="bg-gray-500/20"
+                        iconBg="bg-gray-500/15"
                         iconColor="text-gray-400"
                         label="Version"
                         description="1.0.0"
@@ -152,7 +156,7 @@ export default function Settings() {
                 {user && (
                     <button
                         onClick={signOut}
-                        className="w-full flex items-center justify-center gap-3 py-4 bg-brand/10 hover:bg-brand/20 text-brand font-semibold rounded-2xl transition-colors border border-brand/20"
+                        className="w-full flex items-center justify-center gap-3 py-4 bg-brand/10 hover:bg-brand/20 text-brand font-semibold rounded-2xl transition-colors border border-brand/20 active:scale-[0.98]"
                     >
                         <LogOut className="w-5 h-5" />
                         Sign Out
@@ -170,13 +174,12 @@ export default function Settings() {
                             <button
                                 key={option.value}
                                 onClick={() => { updateSetting('theme', option.value); setShowThemeModal(false) }}
-                                className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-colors ${selected
-                                        ? 'bg-brand text-white'
-                                        : 'bg-surface-card hover:bg-surface-hover'
+                                className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all active:scale-[0.98] ${selected
+                                    ? 'bg-brand text-white'
+                                    : 'bg-surface-card hover:bg-surface-hover'
                                     }`}
                             >
-                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${selected ? 'bg-white/20' : 'bg-surface-hover'
-                                    }`}>
+                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${selected ? 'bg-white/20' : 'bg-surface-hover'}`}>
                                     <Icon className="w-5 h-5" />
                                 </div>
                                 <div className="flex-1 text-left">
@@ -246,6 +249,8 @@ export default function Settings() {
     )
 }
 
+// ── Sub-components ────────────────────────────────────────────────────────────
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
     return (
         <div className="animate-fade-in-up">
@@ -261,12 +266,12 @@ function SettingItem({ icon: Icon, iconBg, iconColor, label, description }: {
 }) {
     return (
         <div className="flex items-center gap-4 px-4 py-4">
-            <div className={`w-11 h-11 rounded-xl ${iconBg} flex items-center justify-center`}>
+            <div className={`w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center flex-shrink-0`}>
                 <Icon className={`w-5 h-5 ${iconColor}`} />
             </div>
-            <div className="flex-1">
-                <p className="font-semibold">{label}</p>
-                <p className="text-sm text-text-muted">{description}</p>
+            <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm">{label}</p>
+                <p className="text-sm text-text-muted truncate">{description}</p>
             </div>
         </div>
     )
@@ -280,41 +285,40 @@ function SettingButton({ icon: Icon, iconBg, iconColor, label, description, onCl
     return (
         <button
             onClick={onClick}
-            className={`w-full flex items-center gap-4 px-4 py-4 hover:bg-white/5 transition-colors ${border ? 'border-t border-white/5' : ''}`}
+            className={`w-full flex items-center gap-4 px-4 py-4 hover:bg-white/5 active:bg-white/10 transition-colors ${border ? 'border-t border-white/5' : ''}`}
         >
-            <div className={`w-11 h-11 rounded-xl ${iconBg} flex items-center justify-center`}>
+            <div className={`w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center flex-shrink-0`}>
                 <Icon className={`w-5 h-5 ${iconColor}`} />
             </div>
-            <div className="flex-1 text-left">
-                <p className="font-semibold">{label}</p>
+            <div className="flex-1 text-left min-w-0">
+                <p className="font-semibold text-sm">{label}</p>
                 <p className="text-sm text-text-muted">{description}</p>
             </div>
-            <ChevronRight className="w-5 h-5 text-text-muted" />
+            <ChevronRight className="w-4 h-4 text-text-muted flex-shrink-0" />
         </button>
     )
 }
 
-function SettingToggle({ icon: Icon, iconBg, iconColor, label, description, value, onChange, border }: {
+function SettingSwitch({ icon: Icon, iconBg, iconColor, label, description, checked, onCheckedChange, border }: {
     icon: React.ComponentType<{ className?: string }>
     iconBg: string; iconColor: string; label: string; description: string
-    value: boolean; onChange: (v: boolean) => void; border?: boolean
+    checked: boolean; onCheckedChange: (v: boolean) => void; border?: boolean
 }) {
     return (
-        <button
-            onClick={() => onChange(!value)}
-            className={`w-full flex items-center gap-4 px-4 py-4 hover:bg-white/5 transition-colors ${border ? 'border-t border-white/5' : ''}`}
-        >
-            <div className={`w-11 h-11 rounded-xl ${iconBg} flex items-center justify-center`}>
+        <div className={`flex items-center gap-4 px-4 py-4 ${border ? 'border-t border-white/5' : ''}`}>
+            <div className={`w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center flex-shrink-0`}>
                 <Icon className={`w-5 h-5 ${iconColor}`} />
             </div>
-            <div className="flex-1 text-left">
-                <p className="font-semibold">{label}</p>
+            <div className="flex-1 text-left min-w-0">
+                <p className="font-semibold text-sm">{label}</p>
                 <p className="text-sm text-text-muted">{description}</p>
             </div>
-            <div className={`w-12 h-7 rounded-full transition-colors ${value ? 'bg-brand' : 'bg-surface-hover'} p-1`}>
-                <div className={`w-5 h-5 rounded-full bg-white transition-transform ${value ? 'translate-x-5' : 'translate-x-0'}`} />
-            </div>
-        </button>
+            <Switch
+                checked={checked}
+                onCheckedChange={onCheckedChange}
+                aria-label={label}
+            />
+        </div>
     )
 }
 
@@ -322,11 +326,10 @@ function ModalOption({ label, selected, onClick }: { label: string; selected: bo
     return (
         <button
             onClick={onClick}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-colors ${selected ? 'bg-brand text-white' : 'bg-surface-card hover:bg-surface-hover'
-                }`}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all active:scale-[0.98] ${selected ? 'bg-brand text-white' : 'bg-surface-card hover:bg-surface-hover'}`}
         >
-            <span className="font-medium">{label}</span>
-            {selected && <Check className="w-5 h-5" />}
+            <span className="font-medium text-sm">{label}</span>
+            {selected && <Check className="w-4 h-4" />}
         </button>
     )
 }

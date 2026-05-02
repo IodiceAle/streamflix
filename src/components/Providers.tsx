@@ -4,6 +4,7 @@ import { QueryClient } from '@tanstack/react-query'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
 import { ToastProvider } from '@/components/ui/Toast'
+import { Toaster } from '@/components/ui/sonner'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { ScrollToTop } from '@/components/ui/ScrollToTop'
 import { OfflineBanner } from '@/components/ui/OfflineBanner'
@@ -48,6 +49,8 @@ export function Providers({ children }: { children: ReactNode }) {
                         <ScrollToTop />
                         <OfflineBanner />
                         {children}
+                        {/* Sonner toaster — renders above everything else */}
+                        <Toaster />
                     </ToastProvider>
                 </BrowserRouter>
             </PersistQueryClientProvider>

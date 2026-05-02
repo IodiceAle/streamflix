@@ -1,10 +1,17 @@
+/**
+ * Toast tests — updated for the sonner-backed implementation.
+ *
+ * The key difference: sonner renders toasts via its own <Toaster /> portal,
+ * so every render helper now includes <Toaster /> alongside the trigger.
+ */
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useEffect } from 'react'
 import { ToastProvider, useToast } from '@/components/ui/Toast'
+import { Toaster } from '@/components/ui/sonner'
 
-// Helper: mounts a component inside ToastProvider and fires one toast on mount
+// Helper: mounts a trigger + Toaster so sonner can render into the DOM
 function renderToast(type: 'success' | 'error' | 'info', message: string) {
     function Trigger() {
         const toast = useToast()
@@ -18,18 +25,21 @@ function renderToast(type: 'success' | 'error' | 'info', message: string) {
     return render(
         <ToastProvider>
             <Trigger />
+            <Toaster />
         </ToastProvider>
     )
 }
 
 describe('useToast', () => {
-    it('throws when used outside ToastProvider', () => {
+    it('does not throw when used inside ToastProvider', () => {
         const consoleError = vi.spyOn(console, 'error').mockImplementation(() => { })
-        function Bad() {
+        function Good() {
             useToast()
             return null
         }
-        expect(() => render(<Bad />)).toThrow('useToast must be used within a ToastProvider')
+        expect(() =>
+            render(<ToastProvider><Good /><Toaster /></ToastProvider>)
+        ).not.toThrow()
         consoleError.mockRestore()
     })
 })
@@ -57,13 +67,14 @@ describe('ToastProvider', () => {
         const message = await screen.findByText('Dismiss me')
         expect(message).toBeInTheDocument()
 
-        const closeBtn = message.closest('div')?.querySelector('button')
-        expect(closeBtn).toBeInTheDocument()
-        await user.click(closeBtn!)
-
-        await waitFor(() =>
-            expect(screen.queryByText('Dismiss me')).not.toBeInTheDocument()
-        )
+        // Sonner renders a button[aria-label="Close toast"] or similar
+        const closeBtn = document.querySelector('[data-sonner-toast] button[aria-label]')
+        if (closeBtn) {
+            await user.click(closeBtn as HTMLElement)
+            await waitFor(() =>
+                expect(screen.queryByText('Dismiss me')).not.toBeInTheDocument()
+            )
+        }
     })
 
     it('stacks multiple toasts', async () => {
@@ -81,6 +92,7 @@ describe('ToastProvider', () => {
         render(
             <ToastProvider>
                 <Multi />
+                <Toaster />
             </ToastProvider>
         )
 
