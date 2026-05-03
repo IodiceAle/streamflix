@@ -14,7 +14,7 @@ export default function Watch() {
     const { updateProgress, markAsWatched, getProgress } = useContinueWatching()
     const { success } = useToast()
 
-    const [iframeLoaded, setIframeLoaded] = useState(true)
+    const [iframeLoaded, setIframeLoaded] = useState(false)
     const [isMarkedWatched, setIsMarkedWatched] = useState(false)
     const [controlsVisible, setControlsVisible] = useState(true)
     const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -66,11 +66,12 @@ export default function Watch() {
     }, [])
 
     useEffect(() => {
+        setIframeLoaded(false)
         iframeTimerRef.current = setTimeout(() => setIframeLoaded(true), 5000)
         return () => {
             if (iframeTimerRef.current) clearTimeout(iframeTimerRef.current)
         }
-    }, [])
+    }, [embedUrl])
 
     // Create/update the "started watching" entry when details load.
     // Preserves existing progress — never overwrites with 0.
@@ -136,7 +137,8 @@ export default function Watch() {
 
     const hasNextEpisode = useMemo(() => {
         if (isMovie || !seasonDetails?.episodes || !episodeNum) return false
-        return episodeNum < seasonDetails.episodes.length
+        // Use .some() to handle seasons with non-sequential episode numbers
+        return seasonDetails.episodes.some(ep => ep.episode_number === episodeNum + 1)
     }, [isMovie, seasonDetails?.episodes, episodeNum])
 
     const handleNextEpisode = useCallback(() => {
@@ -236,8 +238,9 @@ export default function Watch() {
                 title={title ? `Watch ${title}` : 'Video player'}
                 className="w-full flex-1 min-h-0 border-0"
                 allowFullScreen
-                referrerPolicy="origin"
+                referrerPolicy="no-referrer"
                 allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation"
                 onLoad={() => setTimeout(() => setIframeLoaded(true), 1000)}
             />
         </div>
