@@ -5,7 +5,7 @@ import { ArrowLeft, SkipForward, Check, Loader2, Flag } from 'lucide-react'
 import { getMovieEmbedUrl, getTVEmbedUrl } from '@/services/vidsrc'
 import { getMovieDetails, getTVDetails, getSeasonDetails } from '@/services/tmdb'
 import { useContinueWatching } from '@/store/useContinueWatchingStore'
-import { useToast } from '@/components/ui/Toast'
+import { useToast } from '@/components/ui/toast'
 import type { TMDBMovieDetails, TMDBTVDetails } from '@/types'
 
 export default function Watch() {
@@ -16,8 +16,6 @@ export default function Watch() {
 
     const [iframeLoaded, setIframeLoaded] = useState(false)
     const [isMarkedWatched, setIsMarkedWatched] = useState(false)
-    const [controlsVisible, setControlsVisible] = useState(true)
-    const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const iframeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     const isMovie = type === 'movie'
@@ -58,12 +56,6 @@ export default function Watch() {
         [isMovie, tmdbId, seasonNum, episodeNum]
     )
 
-    // Auto-hide controls logic
-    const resetHideTimer = useCallback(() => {
-        setControlsVisible(true)
-        if (hideTimerRef.current) clearTimeout(hideTimerRef.current)
-        hideTimerRef.current = setTimeout(() => setControlsVisible(false), 3000)
-    }, [])
 
     useEffect(() => {
         setIframeLoaded(false)
@@ -161,16 +153,9 @@ export default function Watch() {
     }
 
     return (
-        <div
-            className="fixed inset-0 bg-black z-[60] flex flex-col cursor-pointer"
-            onClick={resetHideTimer}
-            onMouseMove={resetHideTimer}
-            onTouchStart={resetHideTimer}
-        >
+        <div className="fixed inset-0 bg-black z-[60] flex flex-col">
             {/* Top controls — fade out after inactivity */}
-            <div
-                className={`absolute top-0 left-0 right-0 z-20 bg-gradient-to-b from-black/80 to-transparent transition-opacity duration-300 ${controlsVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-            >
+            <div className="absolute top-0 left-0 right-0 z-20 bg-gradient-to-b from-black/80 to-transparent">
                 <div className="flex items-center justify-between px-4 py-3 md:px-8 md:py-4">
                     {/* Left: Back + Title */}
                     <div className="flex items-center gap-3 min-w-0">
@@ -233,16 +218,17 @@ export default function Watch() {
             )}
 
             {/* Video iframe */}
-            <iframe
-                src={embedUrl}
-                title={title ? `Watch ${title}` : 'Video player'}
-                className="w-full flex-1 min-h-0 border-0"
-                allowFullScreen
-                referrerPolicy="no-referrer"
-                allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
-                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation"
-                onLoad={() => setTimeout(() => setIframeLoaded(true), 1000)}
-            />
+            <div className="flex-1 min-h-0 relative">
+                <iframe
+                    src={embedUrl}
+                    title={title ? `Watch ${title}` : 'Video player'}
+                    className="absolute inset-0 w-full h-full border-0"
+                    allowFullScreen
+                    allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation"
+                    onLoad={() => setTimeout(() => setIframeLoaded(true), 1000)}
+                />
+            </div>
         </div>
     )
 }

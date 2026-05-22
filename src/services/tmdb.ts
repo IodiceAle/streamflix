@@ -87,6 +87,7 @@ export const discoverMovies = async (params: {
     sort_by?: string
     'vote_average.gte'?: number
     'vote_average.lte'?: number
+    'vote_count.gte'?: number
     'primary_release_date.gte'?: string
     'primary_release_date.lte'?: string
     with_original_language?: string
@@ -105,6 +106,7 @@ export const discoverTVShows = async (params: {
     sort_by?: string
     'vote_average.gte'?: number
     'vote_average.lte'?: number
+    'vote_count.gte'?: number
     'first_air_date.gte'?: string
     'first_air_date.lte'?: string
     with_original_language?: string

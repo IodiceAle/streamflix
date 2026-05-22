@@ -8,7 +8,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useEffect } from 'react'
-import { ToastProvider, useToast } from '@/components/ui/Toast'
+import { ToastProvider, useToast } from '@/components/ui/toast'
 import { Toaster } from '@/components/ui/sonner'
 
 // Helper: mounts a trigger + Toaster so sonner can render into the DOM

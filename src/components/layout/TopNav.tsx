@@ -23,7 +23,7 @@ export function TopNav() {
     const [hidden, setHidden] = useState(false)
 
     useMotionValueEvent(scrollY, "change", (latest) => {
-        const previous = scrollY.getPrevious()!
+        const previous = scrollY.getPrevious() ?? 0
         if (latest > 100 && latest > previous) {
             setHidden(true)
         } else {

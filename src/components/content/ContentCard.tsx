@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Play, Plus, Check, Star } from 'lucide-react'
 import { getImageUrl } from '@/services/tmdb'
 import { useMyList } from '@/store/useMyListStore'
-import { useToast } from '@/components/ui/Toast'
+import { useToast } from '@/components/ui/toast'
 
 interface ContentCardProps {
     id: number

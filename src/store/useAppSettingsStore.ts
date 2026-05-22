@@ -93,6 +93,7 @@ export const useAppSettingsStore = create<AppSettingsState>()(
                                 id: user.id,
                                 ...settingsWithoutEmail,
                             })
+                            return  // profile created with defaults; stop here
                         }
                         throw error
                     }

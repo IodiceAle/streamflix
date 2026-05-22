@@ -34,7 +34,7 @@ function SheetOverlay({ className, ...props }: React.ComponentProps<typeof Sheet
 const sideStyles: Record<string, string> = {
     top: 'inset-x-0 top-0 border-b border-white/10 rounded-b-2xl animate-fade-in-up',
     bottom: 'inset-x-0 bottom-0 border-t border-white/10 rounded-t-2xl animate-slide-up',
-    left: 'inset-y-0 left-0 h-full w-3/4 max-w-sm border-r border-white/10 rounded-r-2xl animate-slide-in-right',
+    left: 'inset-y-0 left-0 h-full w-3/4 max-w-sm border-r border-white/10 rounded-r-2xl animate-slide-in-left',
     right: 'inset-y-0 right-0 h-full w-3/4 max-w-sm border-l border-white/10 rounded-l-2xl animate-slide-in-right',
 }
 
