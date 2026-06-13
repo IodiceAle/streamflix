@@ -224,8 +224,8 @@ export default function Watch() {
                     title={title ? `Watch ${title}` : 'Video player'}
                     className="absolute inset-0 w-full h-full border-0"
                     allowFullScreen
+                    referrerPolicy="origin"
                     allow="autoplay; encrypted-media; fullscreen; picture-in-picture; web-share"
-                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation"
                     onLoad={() => setTimeout(() => setIframeLoaded(true), 1000)}
                 />
             </div>
